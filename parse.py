@@ -14,14 +14,6 @@ class Token:
     type: str
     value: str
 
-    # def is_variable(self):
-    #     return self.type == 'variable'
-
-    # def is_name(self):
-    #     return self.type == 'name'
-    
-    # def is_special(self):
-    #     return self.type == 'special'
 
 def remove_comments(source):
     return re.sub(r'#.+', '', source)

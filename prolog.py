@@ -4,10 +4,10 @@ from pathlib import Path
 import re
 
 
-class Node:
+class Symbol:
     pass
 
-class Term(Node):
+class Term(Symbol):
     pass
 
 
@@ -97,7 +97,7 @@ class List(Function):
 
 
 
-class Predicate(Node):
+class Predicate(Symbol):
     def __init__(self, name, args: list[Term]):
         self.name = name
         self.arity = len(args)
@@ -121,41 +121,6 @@ class Rule:
         return f'{head} :- {body}.'
 
 
-
-# def get_variables(x):
-#     match x:
-#         case Variable():
-#             return set([x.name])
-#         case Atom():
-#             return set()
-#         case Function():
-#             return set(itertools.chain(*(get_variables(arg) for arg in x.args)))
-#         case list():
-#             return set(itertools.chain(*(get_variables(item) for item in x)))
-#         case _:
-#             return set()
-
-
-# def relabel(x, y, assignments, suffix):
-#     names = get_variables(x) | set(assignments.keys())
-#     return x, _relabel(y, names, suffix)
-
-
-# def _relabel(term, variables, suffix):
-#     match term:
-#         case Variable(name=name) if name in variables:
-#             return Variable(f'{name}{suffix}')
-#         case List(head=head, tail=tail):
-#             return List(head=_relabel(head, variables, suffix), tail=_relabel(tail, variables, suffix))
-#         case Function(name=name, args=args):
-#             args = [_relabel(arg, variables, suffix) for arg in args]
-#             return Function(name=name, args=args)
-#         case list():
-#             return [_relabel(item, variables, suffix) for item in term]
-#         case _:
-#             return term
-
-
 def format_proof(query: Predicate, rules: list[Predicate], assignments: list, with_dontcare = False) -> str:
     output = [f'?- {query}.']
     for assignment in assignments:
@@ -169,7 +134,7 @@ def format_proof(query: Predicate, rules: list[Predicate], assignments: list, wi
     return '\n'.join(output)
 
 
-def substitute(node: Node, assignment: dict):
+def substitute(node: Symbol, assignment: dict):
     match node:
         case Predicate(name=name, args=args):
             args = [substitute(arg, assignment) for arg in args]
@@ -179,10 +144,8 @@ def substitute(node: Node, assignment: dict):
                 v = assignment[v]
             return v
         case Function(name=name, args=args) as function:
-            # print("SUBS ATGS", function)
             args = [substitute(arg, assignment) for arg in args]
             T = type(function)
-            # print("T", T)
             return T(name=name, args=args)
         case _:
             return node
@@ -239,37 +202,6 @@ def collect_variables(term: Term):
             return out
         case _:
             return set()
-
-# def unify(x: Term | list[Term], y: Term | list[Term], partial_assignment):
-#     match (x, y):
-#         case (Atom(), Atom()) if x.name == y.name:
-#             return partial_assignment
-#         case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
-#             return unify(x.args, y.args, partial_assignment)
-#         case (Variable(), Variable()):
-#             if x in partial_assignment or y in partial_assignment:
-#                 x = partial_assignment.get(x, x)
-#                 y = partial_assignment.get(y, y)
-#                 return unify(x, y, partial_assignment)
-#             return partial_assignment | {x: y}
-#         case (Variable(), Atom() | Function()):
-#             if x in partial_assignment:
-#                 x = partial_assignment[x]
-#                 return unify(x, y, partial_assignment)
-#             return partial_assignment | {x: y}
-#         case (Atom() | Function(), Variable()):
-#             if y in partial_assignment:
-#                 y = partial_assignment[y]
-#                 return unify(x, y, partial_assignment)
-#             return partial_assignment | {y: x}            
-#         case (list(), list()) if len(x) == len(y):
-#             for a, b in zip(x, y):
-#                 if (p := unify(a, b, partial_assignment)) is None:
-#                     return None
-#                 partial_assignment = partial_assignment | p
-#             return partial_assignment
-#         case _:
-#             return None
         
 
 def unify(x: Term | list[Term], y: Term | list[Term]):
@@ -297,12 +229,7 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
                 if (merged := merge(current, new)) is None:
                     return
                 current = merged
-
-            # for variable, term in current.items():
-            #     current[variable] = substitute(term, current)
-
-            # return simplify(current)
-            return current
+            return simplify(current)
 
 
 def merge(current, new):
@@ -332,13 +259,23 @@ def query(stack: list[Predicate], rules: list[Rule], partial_assignment: list = 
         yield partial_assignment
         return
 
-    predicate = stack[0]
-    stack = stack[1:]
+    predicate, stack = stack[0], stack[1:]
     # print(stack_depth, "Current stack:")
     # print('\t', predicate, stack)
     # print('\t', partial_assignment)
     # print()
+
+    if predicate.name == '!':
+        unique = object()
+        self.cuts.add(unique)
+        yield from query(stack, rules, partial_assignment, stack_depth+1)
+        self.cuts.remove(unique)
+
+
     for rule in rules:
+        if self.cuts and has_cut(stack):
+            break
+
         rule = refresh(rule)
         if rule.head.name == predicate.name:
             print(stack_depth, "Trying to match", predicate, stack)
