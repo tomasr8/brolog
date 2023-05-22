@@ -35,7 +35,8 @@ class Variable(Term):
         self.name = name
 
     def __repr__(self):
-        return self.name
+        short_id = str(id(self))[-2:]
+        return f'{self.name}_{short_id}..'
     
     def __hash__(self):
         return id(self)
@@ -108,6 +109,17 @@ class Predicate(Symbol):
         return f'{self.name}({args})'
     
 
+class Cut(Predicate):
+    def __init__(self):
+        super().__init__(name="!", args=[])
+
+    def __hash__(self):
+        return id(self)
+
+    def __repr__(self):
+        return '!'
+
+
 class Rule:
     def __init__(self, head: Predicate, body: list[Predicate] = []):
         self.head = head
@@ -136,6 +148,8 @@ def format_proof(query: Predicate, rules: list[Predicate], assignments: list, wi
 
 def substitute(node: Symbol, assignment: dict):
     match node:
+        case Cut() as cut:
+            return cut
         case Predicate(name=name, args=args):
             args = [substitute(arg, assignment) for arg in args]
             return Predicate(name=name, args=args)
@@ -149,29 +163,31 @@ def substitute(node: Symbol, assignment: dict):
             return T(name=name, args=args)
         case _:
             return node
-        
 
-def refresh(rule: Rule):
+
+def relabel(rule: Rule):
     variables = {}
-    def _refresh(node: None):
+    def _relabel(node: None):
         match node:
+            case Cut() as cut:
+                return cut
             case Predicate(name=name, args=args):
-                args = [_refresh(arg) for arg in args]
+                args = [_relabel(arg) for arg in args]
                 return Predicate(name=name, args=args)
             case Variable(name=name) as v:
                 if name not in variables:
                     variables[name] = Variable(name=name)
                 return variables[name]
             case Function(name=name, args=args) as function:
-                args = [_refresh(arg) for arg in args]
+                args = [_relabel(arg) for arg in args]
                 T = type(function)
                 return T(name=name, args=args)
             case _:
                 return node
 
     return Rule(
-        head=_refresh(rule.head),
-        body=[_refresh(p) for p in rule.body]
+        head=_relabel(rule.head),
+        body=[_relabel(p) for p in rule.body]
     )
 
 
@@ -253,30 +269,37 @@ def simplify(assignment):
     return simplified
 
 
-def query(stack: list[Predicate], rules: list[Rule], partial_assignment: list = [{}], stack_depth=0):
+def get_cuts(stack):
+    cuts = set()
+    for pred in stack:
+        if isinstance(pred, Cut):
+            cuts.add(pred)
+    return cuts
+
+
+def query(stack: list[Predicate], rules: list[Rule], partial_assignment: list = [{}], stack_depth=0, cuts=set()):
     if not stack:
         # print("\tSolution:", partial_assignment)
         yield partial_assignment
         return
 
+    print(stack_depth, "Current stack:", stack)
     predicate, stack = stack[0], stack[1:]
-    # print(stack_depth, "Current stack:")
     # print('\t', predicate, stack)
     # print('\t', partial_assignment)
     # print()
 
-    if predicate.name == '!':
-        unique = object()
-        self.cuts.add(unique)
-        yield from query(stack, rules, partial_assignment, stack_depth+1)
-        self.cuts.remove(unique)
-
+    if isinstance(predicate, Cut):
+        cuts.add(predicate)
+        yield from query(stack, rules, partial_assignment, stack_depth+1, cuts | {predicate})
+        return
 
     for rule in rules:
-        if self.cuts and has_cut(stack):
+        print(stack_depth, get_cuts(stack), cuts, get_cuts(stack) & cuts)
+        if (curr_cuts := get_cuts(stack)) and (curr_cuts & cuts):
             break
 
-        rule = refresh(rule)
+        rule = relabel(rule)
         if rule.head.name == predicate.name:
             print(stack_depth, "Trying to match", predicate, stack)
             pred, head = predicate.args, rule.head.args
@@ -285,10 +308,10 @@ def query(stack: list[Predicate], rules: list[Rule], partial_assignment: list = 
                 new_stack = [substitute(p, assignment) for p in stack]
 
                 if not rule.body:
-                    yield from query(new_stack, rules, partial_assignment + [assignment], stack_depth+1)
+                    yield from query(new_stack, rules, partial_assignment + [assignment], stack_depth+1, cuts)
                 else:
                     body = [substitute(p, assignment) for p in rule.body]
-                    yield from query(body + new_stack, rules, partial_assignment + [assignment], stack_depth+1)
+                    yield from query(body + new_stack, rules, partial_assignment + [assignment], stack_depth+1, cuts)
             else:
                 pass
                 print(stack_depth, "NOunify:", predicate, rule.head, partial_assignment)

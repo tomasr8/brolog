@@ -1,10 +1,10 @@
 import re
-from prolog import Rule, Predicate, Variable, Atom, Function, List
+from prolog import Rule, Predicate, Variable, Atom, Function, List, Cut
 from dataclasses import dataclass
 
 
 VARIABLE = re.compile(r'[A-Z_][A-Za-z0-9_]*')
-NAME = re.compile(r'[a-z0-9][A-Za-z0-9_]*')
+NAME = re.compile(r'(?:[a-z0-9][A-Za-z0-9_]*)|!')
 SPECIAL = re.compile(r'[\[\]|().,]|:-')
 WS = re.compile(r'\s+')
 
@@ -77,10 +77,13 @@ class Parser:
     
     def parse_predicate(self):
         token = self.tokens.pop(0)
-        if token.type not in ('name', 'variable'):
+        if token.type not in ('name',):
             raise Exception(f'parse err {token}')
 
         name = token.value
+        if name == '!':
+            return Cut()
+
         token = self.tokens.pop(0)
         if token.value != '(':
             raise Exception('parse err')

@@ -69,10 +69,12 @@ if __name__ == '__main__':
 
     # q = Parser('find(X, d, Path).').parse_head()
     # q = Parser('append([1,2], 3, L).').parse_head()
-    q = Parser('test(X, Y, Z).').parse_head()
+    # q = Parser('test(X, Y, Z).').parse_head()
+    # q = Parser('int(s(s(0))).').parse_head()
+    q = Parser('t(X).').parse_head()
 
 
-    proofs = list(query([q], rules))
+    proofs = list(query([q], rules, partial_assignment=[{}], cuts=set()))
     print(proofs)
     for proof in proofs:
         print(format_proof(q, rules, proof))
