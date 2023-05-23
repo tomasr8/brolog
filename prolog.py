@@ -1,17 +1,17 @@
-import itertools
-from typing import Self
-from pathlib import Path
-import re
+from typing import NamedTuple, Self
 
 
 class Symbol:
-    pass
+    """Base class for terms and predicates"""
+
 
 class Term(Symbol):
-    pass
+    """Base class for atoms, functions & variables"""
 
 
 class Atom(Term):
+    """A constant term, e.g., `c`"""
+
     def __init__(self, name):
         self.name = name
 
@@ -20,6 +20,8 @@ class Atom(Term):
 
 
 class Function(Term):
+    """A function term, e.g., `f(c)`"""
+
     def __init__(self, name, args: list[Term]):
         self.name = name
         self.arity = len(args)
@@ -31,6 +33,8 @@ class Function(Term):
 
 
 class Variable(Term):
+    """A variable, e.g., `X` which takes on values of other terms"""
+
     def __init__(self, name):
         self.name = name
 
@@ -45,60 +49,9 @@ class Variable(Term):
         return self is other
 
 
-class List(Function):
-    def __init__(self, name: str = '<array>', args: list[Term] = []):
-        # print("ARGS", args)
-        match args:
-            case []:
-                super().__init__(name, args=[])
-            case [head]:
-                super().__init__(name, args=[head, List()])
-            case [head, tail]:
-                super().__init__(name, args=[head, tail])
-
-            # case head, (List() | Variable()) as tail:
-            #     super().__init__(name, args=[head, tail])
-            # case _:
-            #     raise TypeError("Bad arguments")
-
-    @property
-    def head(self):
-        if self.args:
-            return self.args[0]
-
-    @property
-    def tail(self):
-        if len(self.args) > 1:
-            return self.args[1]
-
-    def __repr__(self):
-        match (self.head, self.tail):
-            case None, None:
-                return '[]'
-            case head, None:
-                return f'[{head}]'
-            case head, Variable() as tail:
-                return f'[{head}|{tail}]'
-            case head, List(args=[]) as tail:
-                return f'[{head}]'
-            case head, List() as tail:
-                # unwrap extra '[]'
-                tail = re.sub(r'^\[(.+)\]$', r'\1', str(tail))
-                return f'[{head},{tail}]'
-            case head, tail:
-                # List() is just a function so technically tail can be any type like an atom
-                # e.g. [1|2] which is not a valid list but is syntactically correct
-                return f'[{head}|{tail}]'
-
-    @classmethod
-    def from_list(cls, arr):
-        if not arr:
-            return cls()
-        return cls(args=[arr[0], cls.from_list(arr[1:])])
-
-
-
 class Predicate(Symbol):
+    """A predicate, e.g., `P(X, f(Y))`. Predicates can be assigned truth values."""
+
     def __init__(self, name, args: list[Term]):
         self.name = name
         self.arity = len(args)
@@ -110,6 +63,7 @@ class Predicate(Symbol):
     
 
 class Cut(Predicate):
+    """A special Prolog predicate (`!`) which controls backtracking behaviour."""
     def __init__(self):
         super().__init__(name="!", args=[])
 
@@ -121,6 +75,11 @@ class Cut(Predicate):
 
 
 class Rule:
+    """A Prolog rule, e.g,
+    
+    connected(A, C) :- connected(A, B), connected(B, C).
+    """
+
     def __init__(self, head: Predicate, body: list[Predicate] = []):
         self.head = head
         self.body = body
@@ -147,27 +106,30 @@ def format_proof(query: Predicate, rules: list[Predicate], assignments: list, wi
 
 
 def substitute(node: Symbol, assignment: dict):
+    """Replace all variables in a symbol (predicate or term) with its corresponding value.
+
+    The value can be another variable.    
+    """
     match node:
+        case Atom() as atom:
+            return atom
         case Cut() as cut:
             return cut
         case Predicate(name=name, args=args):
             args = [substitute(arg, assignment) for arg in args]
             return Predicate(name=name, args=args)
-        case Variable() as v if v in assignment:
+        case Function(name=name, args=args):
+            args = [substitute(arg, assignment) for arg in args]
+            return Function(name=name, args=args)
+        case Variable() as v:
             while v in assignment:
                 v = assignment[v]
             return v
-        case Function(name=name, args=args) as function:
-            args = [substitute(arg, assignment) for arg in args]
-            T = type(function)
-            return T(name=name, args=args)
-        case _:
-            return node
 
 
 def relabel(rule: Rule):
     variables = {}
-    def _relabel(node: None):
+    def _relabel(node: Symbol):
         match node:
             case Cut() as cut:
                 return cut
@@ -175,13 +137,12 @@ def relabel(rule: Rule):
                 args = [_relabel(arg) for arg in args]
                 return Predicate(name=name, args=args)
             case Variable(name=name) as v:
-                if name not in variables:
-                    variables[name] = Variable(name=name)
-                return variables[name]
-            case Function(name=name, args=args) as function:
+                if v not in variables:
+                    variables[v] = Variable(name=name)
+                return variables[v]
+            case Function(name=name, args=args):
                 args = [_relabel(arg) for arg in args]
-                T = type(function)
-                return T(name=name, args=args)
+                return Function(name=name, args=args)
             case _:
                 return node
 
@@ -220,11 +181,13 @@ def collect_variables(term: Term):
             return set()
         
 
-def unify(x: Term | list[Term], y: Term | list[Term]):
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
     match (x, y):
         case (Atom(), Atom()) if x.name == y.name:
             return {}
         case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
+            return unify(x.args, y.args)
+        case (Predicate(), Predicate()) if x.name == y.name and x.arity == y.arity:
             return unify(x.args, y.args)
         case (Variable(), Variable()):
             if x == y:
@@ -240,78 +203,70 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
         case (list(), list()) if len(x) == len(y):
             current = {}
             for a, b in zip(x, y):
+                a = substitute(a, current)
+                b = substitute(b, current)
+
                 if (new := unify(a, b)) is None:
                     return
-                if (merged := merge(current, new)) is None:
-                    return
-                current = merged
-            return simplify(current)
-
-
-def merge(current, new):
-    for variable, term in new.items():
-        if variable in current:
-            if (p := unify(current[variable], new[variable])) is None:
-                return
-            current = current | p            
-        else:
-            current = current | {variable: term}
-    return current
-
-
-def simplify(assignment):
-    simplified = {}
-    for variable, term in assignment.items():
-        term = substitute(term, simplified)
-        for v, t in simplified.items():
-            simplified[v] = substitute(t, {variable: term})
-        simplified[variable] = term
-    return simplified
+                current |= new
+            return current
 
 
 def get_cuts(stack):
-    cuts = set()
-    for pred in stack:
-        if isinstance(pred, Cut):
-            cuts.add(pred)
-    return cuts
+    return set(pred for pred in stack if isinstance(pred, Cut))
 
 
-def query(stack: list[Predicate], rules: list[Rule], partial_assignment: list = [{}], stack_depth=0, cuts=set()):
-    if not stack:
-        # print("\tSolution:", partial_assignment)
-        yield partial_assignment
+def cut_active(stack, cuts):
+    stack_cuts = get_cuts(stack)
+    for cut in stack_cuts:
+        if cuts[cut]:
+            return True
+    return False
+
+
+class QueryState(NamedTuple):
+    rules: list[Rule]
+    stack: list[Predicate]
+    stack_depth: int = 0
+    cuts: dict[Cut, bool] = {}
+    partial_assignment: list[dict[Variable, Term]] = [{}]
+
+    def make_new(self, **kwargs) -> Self:
+        kwargs = self._asdict() | {'stack_depth': self.stack_depth + 1} | kwargs
+        return QueryState(**kwargs)
+
+
+def query(state: QueryState):
+    if not state.stack:
+        yield state.partial_assignment
         return
 
-    print(stack_depth, "Current stack:", stack)
-    predicate, stack = stack[0], stack[1:]
-    # print('\t', predicate, stack)
-    # print('\t', partial_assignment)
-    # print()
+    print(state.stack_depth, "Current stack:", state.stack)
+    predicate, stack = state.stack[0], state.stack[1:]
 
     if isinstance(predicate, Cut):
-        cuts.add(predicate)
-        yield from query(stack, rules, partial_assignment, stack_depth+1, cuts | {predicate})
+        state.cuts[predicate] = True
+        yield from query(state.make_new(stack=stack))
         return
 
-    for rule in rules:
-        print(stack_depth, get_cuts(stack), cuts, get_cuts(stack) & cuts)
-        if (curr_cuts := get_cuts(stack)) and (curr_cuts & cuts):
+    for rule in state.rules:
+        print(state.stack_depth, 'cut active:', cut_active(stack, state.cuts))
+        if cut_active(stack, state.cuts):
             break
 
         rule = relabel(rule)
-        if rule.head.name == predicate.name:
-            print(stack_depth, "Trying to match", predicate, stack)
-            pred, head = predicate.args, rule.head.args
-            if (assignment := unify(pred, head)) is not None:
-                print(stack_depth, "Unified:", predicate, rule.head, partial_assignment + [assignment])
-                new_stack = [substitute(p, assignment) for p in stack]
+        print(state.stack_depth, "Trying to match", predicate, stack)
+        if (assignment := unify(predicate, rule.head)) is not None:
+            print(state.stack_depth, "Unified:", predicate, rule.head, state.partial_assignment + [assignment])
+            new_stack = [substitute(p, assignment) for p in stack]
 
-                if not rule.body:
-                    yield from query(new_stack, rules, partial_assignment + [assignment], stack_depth+1, cuts)
-                else:
-                    body = [substitute(p, assignment) for p in rule.body]
-                    yield from query(body + new_stack, rules, partial_assignment + [assignment], stack_depth+1, cuts)
+            if not rule.body:
+                yield from query(state.make_new(stack=new_stack, partial_assignment=state.partial_assignment + [assignment]))
             else:
-                pass
-                print(stack_depth, "NOunify:", predicate, rule.head, partial_assignment)
+                body = [substitute(p, assignment) for p in rule.body]
+                new_cuts = {cut: False for cut in get_cuts(body)}
+                yield from query(state.make_new(stack=body + new_stack, partial_assignment=state.partial_assignment + [assignment],
+                                                cuts=state.cuts | new_cuts))
+        else:
+            pass
+            print(state.stack_depth, "NOunify:", predicate, rule.head, state.partial_assignment)

@@ -1,5 +1,5 @@
 from pathlib import Path
-from prolog import Atom, Variable, Function, List, Predicate, Rule, format_proof, query, unify, instantiate
+from prolog import Atom, Variable, Function, format_proof, query, unify, instantiate, QueryState
 from parse import Parser
 
 
@@ -71,10 +71,12 @@ if __name__ == '__main__':
     # q = Parser('append([1,2], 3, L).').parse_head()
     # q = Parser('test(X, Y, Z).').parse_head()
     # q = Parser('int(s(s(0))).').parse_head()
-    q = Parser('t(X).').parse_head()
+    # q = Parser('t(X).').parse_head()
+    q = Parser('p(X, Y, P).').parse_head()
 
+    state = QueryState(rules, [q])
 
-    proofs = list(query([q], rules, partial_assignment=[{}], cuts=set()))
+    proofs = list(query(state))
     print(proofs)
     for proof in proofs:
         print(format_proof(q, rules, proof))

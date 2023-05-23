@@ -1,17 +1,23 @@
 import re
-from prolog import Rule, Predicate, Variable, Atom, Function, List, Cut
-from dataclasses import dataclass
+from prolog import Rule, Predicate, Variable, Atom, Function, Cut, Term
+from typing import NamedTuple
+from enum import Enum
 
 
 VARIABLE = re.compile(r'[A-Z_][A-Za-z0-9_]*')
 NAME = re.compile(r'(?:[a-z0-9][A-Za-z0-9_]*)|!')
-SPECIAL = re.compile(r'[\[\]|().,]|:-')
+SPECIAL = re.compile(r'[().,]|:-')
 WS = re.compile(r'\s+')
 
 
-@dataclass
-class Token:
-    type: str
+class TokenType(Enum):
+    variable = 1
+    name = 2
+    special = 3
+
+
+class Token(NamedTuple):
+    type: TokenType
     value: str
 
 
@@ -19,141 +25,116 @@ def remove_comments(source):
     return re.sub(r'#.+', '', source)
 
 
+def remove_whitespace(source):
+    return re.sub(WS, '', source)
+
+
 def tokenize(source):
-    source = re.sub(WS, '', source)
+    source = remove_comments(source)
+    source = remove_whitespace(source)
     tokens = []
     while source:
         if match := re.match(VARIABLE, source):
-            tokens.append(Token('variable', match[0]))
-            source = source[match.end():]
+            _type = TokenType.variable
         elif match := re.match(NAME, source):
-            tokens.append(Token('name', match[0]))
-            source = source[match.end():]
+            _type = TokenType.name
         elif match := re.match(SPECIAL, source):
-            tokens.append(Token('special', match[0]))
-            source = source[match.end():]
+            _type = TokenType.special
         else:
             raise Exception(f"Unexpected token: {source}")
-        
+        tokens.append(Token(_type, match[0]))
+        source = source[match.end():]
     return tokens
 
 
 class Parser:
-    def __init__(self, source):
-        self.tokens = tokenize(remove_comments(source))
-        self.scope = {}
+    def __init__(self, source: str):
+        self.tokens = tokenize(source)
+        self.current_scope = {}
 
-    def parse(self):
+    def pop(self) -> Token:
+        return self.tokens.pop(0)
+
+    def parse(self) -> list[Rule]:
         rules = []
         while self.tokens:
-            self.scope = {}
+            self.current_scope = {}
             rules.append(self.parse_rule())
         return rules
 
-    def parse_rule(self):
+    def parse_rule(self) -> Rule:
         head = self.parse_head()
-        token = self.tokens.pop(0)
+        token = self.pop()
         match token:
-            case Token(type='special', value='.'):
+            case Token(type=TokenType.special, value='.'):
                 return Rule(head=head)
-            case Token(type='special', value=':-'):
+            case Token(type=TokenType.special, value=':-'):
                 body = self.parse_body()
-                token = self.tokens.pop(0)
+                token = self.pop()
                 if token.value != '.':
                     raise Exception('missing dot')
                 return Rule(head=head, body=body)
             case _:
                 raise Exception('parse err')
 
-    def parse_head(self):
+    def parse_head(self) -> Predicate:
         return self.parse_predicate()
     
-    def parse_body(self):
+    def parse_body(self) -> list[Predicate]:
         body = [self.parse_predicate()]
         while self.tokens[0].value == ',':
-            self.tokens.pop(0)
+            self.pop()
             body.append(self.parse_predicate())
         return body
     
-    def parse_predicate(self):
-        token = self.tokens.pop(0)
-        if token.type not in ('name',):
+    def parse_predicate(self) -> Predicate:
+        token = self.pop()
+        if token.type != TokenType.name:
             raise Exception(f'parse err {token}')
 
         name = token.value
         if name == '!':
             return Cut()
 
-        token = self.tokens.pop(0)
+        token = self.pop()
         if token.value != '(':
             raise Exception('parse err')
 
         args = self.parse_args()
-
-        token = self.tokens.pop(0)
+        token = self.pop()
         if token.value != ')':
             raise Exception('parse err')
 
         return Predicate(name=name, args=args)
 
-    def parse_args(self):
+    def parse_args(self) -> list[Term]:
         if self.tokens[0].value == ')':
-            self.tokens.pop(0)
             return []
 
         args = [self.parse_term()]
         while self.tokens[0].value == ',':
-            self.tokens.pop(0)
+            self.pop()
             args.append(self.parse_term())
         return args
 
-    def parse_term(self):
-        token = self.tokens.pop(0)
+    def parse_term(self) -> Term:
+        token = self.pop()
         match token:
-            case Token(type='variable', value=name):
-                if name not in self.scope:
-                    self.scope[name] = Variable(name=name)
-                return self.scope[name]
-            case Token(type='name', value=name):
+            case Token(type=TokenType.variable, value=name):
+                if name == '_':
+                    return Variable('_')
+                if name not in self.current_scope:
+                    self.current_scope[name] = Variable(name=name)
+                return self.current_scope[name]
+            case Token(type=TokenType.name, value=name):
                 if self.tokens[0].value == '(':
-                    if self.tokens[0].value == ']':
-                        self.tokens.pop(0)
-                        return Function(name=name, args=[])
-                    self.tokens.pop(0)
+                    self.pop()
                     fn = Function(name=name, args=self.parse_args())
-                    token = self.tokens.pop(0)
+                    token = self.pop()
                     if token.value != ')':
                         raise Exception('unclosed argument list')
                     return fn
                 else:
                     return Atom(name=name)
-            case Token(type='special', value='['):
-                if self.tokens[0].value == ']':
-                    self.tokens.pop(0)
-                    return List()
-                lst = self.parse_list()
-                token = self.tokens.pop(0)
-                if token.value != ']':
-                    raise Exception(f'unclosed list {token}')
-                return lst
             case _:
                 raise Exception(f'parse err {token}')
-
-        
-    def parse_list(self):
-        head = self.parse_term()
-        if self.tokens[0].value == '|':
-            self.tokens.pop(0)
-            tail = self.parse_term()
-            if not isinstance(tail, List) and not isinstance(tail, Variable):
-                raise Exception(f'Expected a list or variable, got: {tail}')
-            return List(args=[head, tail])
-        
-        arr = [head]
-        while self.tokens[0].value == ',':
-            self.tokens.pop(0)
-            arr.append(self.parse_term())
-        return List.from_list(arr)
-
-
-
