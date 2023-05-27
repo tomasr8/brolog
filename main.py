@@ -6,13 +6,11 @@ from parse import Parser
 if __name__ == '__main__':
     a = Atom('a')
     b = Atom('b')
-
     f = Function('f', args=[a, b])
     X = Variable('X')
     Y = Variable('Y')
     Z = Variable('Z')
     g = Function('g', args=[Y, b])
-
     # A = [X]
     # B = [Function('s', args=[Variable('X')])]
     # relabel(A, B)
@@ -71,17 +69,19 @@ if __name__ == '__main__':
     # q = Parser('append([1,2], 3, L).').parse_head()
     # q = Parser('test(X, Y, Z).').parse_head()
     # q = Parser('int(s(s(0))).').parse_head()
-    # q = Parser('t(X).').parse_head()
-    q = Parser('p(X, Y, P).').parse_head()
+    q = Parser('t(X).').parse_head()
+    # q = Parser('p(X, Y, P).').parse_head()
 
     state = QueryState(rules, [q])
+    tree = []
 
-    proofs = list(query(state))
+    proofs = list(query(state, tree))
     print(proofs)
     for proof in proofs:
         print(format_proof(q, rules, proof))
         print(f">> {instantiate(q, proof)}")
 
+    print(tree)
 
 
     # print(List())

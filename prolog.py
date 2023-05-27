@@ -1,5 +1,10 @@
 from typing import NamedTuple, Self
+from hashlib import sha1
 
+
+def short_id(long_id):
+    bytes_id = str(long_id).encode('utf-8')
+    return sha1(bytes_id).hexdigest()[:2]
 
 class Symbol:
     """Base class for terms and predicates"""
@@ -38,9 +43,11 @@ class Variable(Term):
     def __init__(self, name):
         self.name = name
 
+    def __str__(self):
+        return self.name
+
     def __repr__(self):
-        short_id = str(id(self))[-2:]
-        return f'{self.name}_{short_id}..'
+        return f'{self.name}_{short_id(id(self))}'
     
     def __hash__(self):
         return id(self)
@@ -105,10 +112,10 @@ def format_proof(query: Predicate, rules: list[Predicate], assignments: list, wi
     return '\n'.join(output)
 
 
-def substitute(node: Symbol, assignment: dict):
+def substitute(node: Symbol, substitution: dict[Variable, Term]) -> Symbol:
     """Replace all variables in a symbol (predicate or term) with its corresponding value.
 
-    The value can be another variable.    
+    The value can be another variable.
     """
     match node:
         case Atom() as atom:
@@ -116,14 +123,14 @@ def substitute(node: Symbol, assignment: dict):
         case Cut() as cut:
             return cut
         case Predicate(name=name, args=args):
-            args = [substitute(arg, assignment) for arg in args]
+            args = [substitute(arg, substitution) for arg in args]
             return Predicate(name=name, args=args)
         case Function(name=name, args=args):
-            args = [substitute(arg, assignment) for arg in args]
+            args = [substitute(arg, substitution) for arg in args]
             return Function(name=name, args=args)
         case Variable() as v:
-            while v in assignment:
-                v = assignment[v]
+            while v in substitution:
+                v = substitution[v]
             return v
 
 
@@ -217,18 +224,14 @@ def get_cuts(stack):
 
 
 def cut_active(stack, cuts):
-    stack_cuts = get_cuts(stack)
-    for cut in stack_cuts:
-        if cuts[cut]:
-            return True
-    return False
+    return any(cut in cuts for cut in get_cuts(stack))
 
 
 class QueryState(NamedTuple):
     rules: list[Rule]
     stack: list[Predicate]
     stack_depth: int = 0
-    cuts: dict[Cut, bool] = {}
+    cuts: set[Cut] = set()
     partial_assignment: list[dict[Variable, Term]] = [{}]
 
     def make_new(self, **kwargs) -> Self:
@@ -236,7 +239,14 @@ class QueryState(NamedTuple):
         return QueryState(**kwargs)
 
 
-def query(state: QueryState):
+def query(state: QueryState, search_tree):
+    curr = {
+        'current': state.stack,
+        'current_depth': state.stack_depth,
+        'children': []
+    }
+    search_tree.append(curr)
+
     if not state.stack:
         yield state.partial_assignment
         return
@@ -245,8 +255,8 @@ def query(state: QueryState):
     predicate, stack = state.stack[0], state.stack[1:]
 
     if isinstance(predicate, Cut):
-        state.cuts[predicate] = True
-        yield from query(state.make_new(stack=stack))
+        state.cuts.add(predicate)
+        yield from query(state.make_new(stack=stack), curr['children'])
         return
 
     for rule in state.rules:
@@ -261,12 +271,15 @@ def query(state: QueryState):
             new_stack = [substitute(p, assignment) for p in stack]
 
             if not rule.body:
-                yield from query(state.make_new(stack=new_stack, partial_assignment=state.partial_assignment + [assignment]))
+                yield from query(state.make_new(stack=new_stack, partial_assignment=state.partial_assignment + [assignment]),
+                                 curr['children'])
             else:
                 body = [substitute(p, assignment) for p in rule.body]
-                new_cuts = {cut: False for cut in get_cuts(body)}
-                yield from query(state.make_new(stack=body + new_stack, partial_assignment=state.partial_assignment + [assignment],
-                                                cuts=state.cuts | new_cuts))
+                new_cuts = get_cuts(body)
+                yield from query(state.make_new(stack=body + new_stack, partial_assignment=state.partial_assignment + [assignment]),
+                                 curr['children'])
+                for cut in new_cuts:
+                    state.cuts.discard(cut)
         else:
             pass
             print(state.stack_depth, "NOunify:", predicate, rule.head, state.partial_assignment)
