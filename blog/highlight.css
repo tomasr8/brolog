@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400");
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /* background-color: #333; */
+  /* font-size: 0; */
+}
+
+.code-sample {
+  font-size: 14px;
+  width: 700px;
+  margin: 0 auto;
+  background-color: #333;
+  border-radius: 12px;
+}
+
+.code-sample .header {
+  padding: 10px;
+  background-color: white;
+  display: flex;
+}
+
+.code-sample .header .filename {
+  font-family: monospace;
+}
+
+
+
+.highlight-comma,
+.highlight-special,
+.highlight-keyword,
+.highlight-operator,
+.highlight-function,
+.highlight-function-def,
+.highlight-class-def {
+  font-weight: 400;
+}
+
+.highlight-argument {
+  font-style: italic;
+}
+
+.highlight-default,
+.highlight-special,
+.highlight-semicolon,
+.highlight-comma {
+  color: #ddd;
+}
+
+.highlight-keyword,
+.highlight-operator {
+  color: #ff6192;
+}
+
+.highlight-function,
+.highlight-identifier {
+  color: #47a3ff;
+}
+
+.highlight-function-def,
+.highlight-class-def {
+  color: #61ffd3;
+}
+
+.highlight-argument {
+  color: #ffbc61;
+}
+
+.highlight-string {
+  color: #9aff76;
+}
+
+.highlight-number {
+  color: #c049fe;
+}
+
+.highlight-comment {
+  color: #777;
+}
+
+.highlight-parenthesis {
+  color: #82c0ff;
+}

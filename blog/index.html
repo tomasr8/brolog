@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css"
+      integrity="sha384-3UiQGuEI4TTMaFmGIZumfRPtfKQ3trwQE2JgosJxCnGmQpL/lJdjpcHkaaFwHlcI"
+      crossorigin="anonymous"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.js"
+      integrity="sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t"
+      crossorigin="anonymous"
+    ></script>
+
+    <link href="highlight.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main>
+      <article style="width: 800px; margin: 0 auto">
+        <div style="font-family: 'Noto Serif', serif">
+          We will build up our prolog interepreter from basic comopnents and
+          operations. The buildings blocks of first order logic are terms and
+          predicates. Terms can be atoms, functions and variables. Predicates
+          are the equivalent to propositions from prospotional logic; they can
+          be either true or false. Prolog is essentially a subset of first order
+          resolution - one with a well-defined algorithm
+        </div>
+        <div id="latex"></div>
+        <div class="code-sample">
+          <div class="header">
+            <div class="filename">core.py</div>
+            <div class="commit-sha"><a href="#">34hj6k5</a></div>
+          </div>
+          <div class="code">
+            <pre>
+                <code id="code">
+                </code>
+            </pre>
+          </div>
+        </div>
+      </article>
+    </main>
+    <script src="highlight.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const elem = document.getElementById("latex");
+        katex.render("c = \\pm\\sqrt{a^2 + b^2}", elem, {
+          throwOnError: false,
+        });
+      });
+    </script>
+  </body>
+</html>
