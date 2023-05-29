@@ -135,6 +135,19 @@ def substitute(node: Symbol, substitution: dict[Variable, Term]) -> Symbol:
 
 
 def relabel(rule: Rule):
+    class Substitution(dict):
+        def __missing__(self, v: Variable):
+            self[v] = Variable(v.name)
+            return self[v]
+
+    substitution = Substitution()
+    return Rule(
+        head=substitute(rule.head, substitution),
+        body=[substitute(p, substitution) for p in rule.body]
+    )
+
+
+def relabel(rule: Rule):
     variables = {}
     def _relabel(node: Symbol):
         match node:
@@ -186,7 +199,13 @@ def collect_variables(term: Term):
             return out
         case _:
             return set()
-        
+
+
+def get_value(v, substitution):
+    while v in substitution:
+        v = substitution[v]
+    return v
+
 
 def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
     match (x, y):

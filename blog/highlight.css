@@ -25,8 +25,17 @@ body {
   /* font-size: 0; */
 }
 
+p {
+  font-size: 18px;
+  color: rgb(71, 71, 91);
+}
+
+.latex {
+  text-align: center;
+}
+
 .code-sample {
-  font-size: 14px;
+  font-size: 15px;
   width: 800px;
   margin: 0 auto;
   background-color: #22272e;
@@ -48,7 +57,8 @@ pre {
   padding: 1em 0;
 }
 
-code {
+h1 {
+  font-size: 26px;
 }
 
 .line {
