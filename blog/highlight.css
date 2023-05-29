@@ -1,32 +1,62 @@
-@import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400");
+/* @import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400"); */
+
+@font-face {
+  font-family: 'cesko.digital';
+  src: url('cesko.digital-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'cesko.digital.mono';
+  src: url('cesko.digital.mono-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
 
 html,
 body {
   margin: 0;
   padding: 0;
+  font-family: 'cesko.digital', sans-serif;
+  font-weight: 400;
   /* background-color: #333; */
   /* font-size: 0; */
 }
 
 .code-sample {
   font-size: 14px;
-  width: 700px;
+  width: 800px;
   margin: 0 auto;
-  background-color: #333;
-  border-radius: 12px;
+  background-color: #22272e;
 }
 
 .code-sample .header {
   padding: 10px;
-  background-color: white;
+  background-color: #edccff;
   display: flex;
+  justify-content: space-between;
 }
 
 .code-sample .header .filename {
-  font-family: monospace;
+  font-family: 'cesko.digital.mono', monospace;
 }
 
+pre {
+  margin: 0;
+  padding: 1em 0;
+}
 
+code {
+}
+
+.line {
+  /* font-family: 'cesko.digital.mono', monospace; */
+  display: inline-block;
+  width: 100%;
+  padding-left: 1em;
+}
 
 .highlight-comma,
 .highlight-special,

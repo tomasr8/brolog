@@ -65,11 +65,11 @@ if __name__ == '__main__':
     for rule in rules:
         print(rule)
 
-    # q = Parser('find(X, d, Path).').parse_head()
+    q = Parser('find(X, d, Path).').parse_head()
     # q = Parser('append([1,2], 3, L).').parse_head()
     # q = Parser('test(X, Y, Z).').parse_head()
     # q = Parser('int(s(s(0))).').parse_head()
-    q = Parser('t(X).').parse_head()
+    # q = Parser('t(X).').parse_head()
     # q = Parser('p(X, Y, P).').parse_head()
 
     state = QueryState(rules, [q])

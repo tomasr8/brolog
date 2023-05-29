@@ -121,16 +121,40 @@ const patterns = [
 ];
 
 function tokenize(source) {
-  console.log(source);
+  const lines = source.split(/\n/g);
+  // console.log(lines);
+
+  const processedLines = [];
+  for (const line of lines) {
+    const { bg, tokens } = tokenizeLine(line);
+    processedLines.push({ bg, tokens });
+  }
+  // console.log(processedLines);
+  return processedLines;
+}
+
+function tokenizeLine(line) {
+  if (line === "") {
+    return { tokens: [] };
+  }
+  // console.log(">>>>", line);
+  let bg;
+  if (line[0] === "+") {
+    bg = "#4293421f";
+    line = line.slice(1);
+  } else if (line[0] === "-") {
+    bg = "rgba(229,83,75,0.1)";
+    line = line.slice(1);
+  }
+
   const tokens = [];
-  while (source) {
+  while (line) {
     let matched = false;
     for (const [type, pattern] of patterns) {
-      const match = source.match(pattern);
+      const match = line.match(pattern);
       if (match) {
         tokens.push({ type, value: match[0] });
-        source = source.slice(match[0].length);
-        console.log(match);
+        line = line.slice(match[0].length);
         matched = true;
         break;
       }
@@ -140,8 +164,13 @@ function tokenize(source) {
       break;
     }
   }
-  console.log(tokens);
-  return tokens;
+  return { bg, tokens };
+}
+
+function postProcessLines(lines) {
+  return lines.map(({ bg, tokens }) => {
+    return { bg, tokens: postProcess(tokens) };
+  });
 }
 
 function postProcess(tokens) {
@@ -176,81 +205,86 @@ function postProcess(tokens) {
       i++;
     }
   }
-  console.log(processed);
+  // console.log(processed);
   return processed;
 }
 
-function makeHTML(tokens) {
-  return tokens
-    .map((token) => {
-      return `<span class="highlight-${token.type}">${token.value}</span>`;
+function makeHTML(lines) {
+  return lines
+    .map((line) => {
+      const bg = `background-color: ${line.bg};` || "";
+      const tokens = line.tokens
+        .map((token) => {
+          return `<span class="highlight-${token.type}">${token.value}</span>`;
+        })
+        .join("");
+      return `<span class="line" style="${bg}">${tokens}</span>`;
     })
-    .join("");
+    .join("<br />");
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const source = `
-  class Function(Term):
-      """A function term, e.g., \`f(c)\`"""
+  const source = `\
+class Function(Term):
+    """A function term, e.g., \`f(c)\`"""
 
-      def __init__(self, name, args: list[Term]):
-          self.name = name
-          self.arity = len(args)
-          self.args = args
+    def __init__(self, name, args: list[Term]):
++       self.name = name
++       self.arity = len(args)
++       self.args = args
 
-      def __repr__(self):
-          args = ', '.join([repr(arg) for arg in self.args])
-          return f'{self.name}({args})'
-
-
-  class Variable(Term):
-      """A variable, e.g., \`X\` which takes on values of other terms"""
-
-      def __init__(self, name):
-          self.name = name
-
-      def __repr__(self):
-          short_id = str(id(self))[-2:]
-          return f'{self.name}_{short_id}..'
-      
-      def __hash__(self):
-          return id(self)
-      
-      def __eq__(self, other):
-          return self is other
+-   def __repr__(self):
+-       args = ', '.join([repr(arg) for arg in self.args])
+-       return f'{self.name}({args})'
 
 
-  def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
-      match (x, y):
-          case (Atom(), Atom()) if x.name == y.name:
-              return {}
-          case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
-              return unify(x.args, y.args)
-          case (Predicate(), Predicate()) if x.name == y.name and x.arity == y.arity:
-              return unify(x.args, y.args)
-          case (Variable(), Variable()):
-              if x == y:
-                  return {}
-              else:
-                  return {x: y}
-          case (Variable(), (Atom() | Function()) as term):
-              if not contains(term, x):
-                  return {x: term}
-          case ((Atom() | Function()) as term, Variable()):
-              if not contains(term, y):
-                  return {y: term}
-          case (list(), list()) if len(x) == len(y):
-              current = {}
-              for a, b in zip(x, y):
-                  a = substitute(a, current)
-                  b = substitute(b, current)
+class Variable(Term):
+    """A variable, e.g., \`X\` which takes on values of other terms"""
 
-                  if (new := unify(a, b)) is None:
-                      return
-                  current |= new
-              return current
-    `;
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        short_id = str(id(self))[-2:]
+        return f'{self.name}_{short_id}..'
+    
+    def __hash__(self):
+        return id(self)
+    
+    def __eq__(self, other):
+        return self is other
+
+
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case (Atom(), Atom()) if x.name == y.name:
+            return {}
+        case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
+            return unify(x.args, y.args)
+        case (Predicate(), Predicate()) if x.name == y.name and x.arity == y.arity:
+            return unify(x.args, y.args)
+        case (Variable(), Variable()):
+            if x == y:
+                return {}
+            else:
+                return {x: y}
+        case (Variable(), (Atom() | Function()) as term):
+            if not contains(term, x):
+                return {x: term}
+        case ((Atom() | Function()) as term, Variable()):
+            if not contains(term, y):
+                return {y: term}
+        case (list(), list()) if len(x) == len(y):
+            current = {}
+            for a, b in zip(x, y):
+                a = substitute(a, current)
+                b = substitute(b, current)
+
+                if (new := unify(a, b)) is None:
+                    return
+                current |= new
+            return current`;
   document.getElementById("code").innerHTML = makeHTML(
-    postProcess(tokenize(source))
+    postProcessLines(tokenize(source))
   );
 });

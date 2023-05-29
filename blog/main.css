@@ -1,0 +1,27 @@
+@font-face {
+  font-family: 'cesko.digital';
+  src: url('cesko.digital-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+@font-face {
+  font-family: 'cesko.digital.mono';
+  src: url('cesko.digital.mono-regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+nav {
+    width: 800px;
+    margin: 2em auto 0 auto;
+    display: flex;
+    justify-content: space-between;
+    font-family: 'cesko.digital.mono', monospace;
+}
+
+a:visited {
+  color: blue;
+}
