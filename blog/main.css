@@ -1,34 +1,52 @@
 @font-face {
-  font-family: 'cesko.digital';
-  src: url('cesko.digital-regular.woff') format('woff');
+  font-family: "cesko.digital";
+  src: url("cesko.digital-regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
 
-
 @font-face {
-  font-family: 'cesko.digital.mono';
-  src: url('cesko.digital.mono-regular.woff') format('woff');
+  font-family: "cesko.digital.mono";
+  src: url("cesko.digital.mono-regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
 
 nav {
-    width: 800px;
-    margin: 2em auto 0 auto;
-    display: flex;
-    justify-content: space-between;
-    font-family: 'cesko.digital.mono', monospace;
+  width: 800px;
+  margin: 2em auto 4em auto;
+  display: flex;
+  justify-content: space-between;
+  font-family: "cesko.digital.mono", monospace;
 }
 
 a:visited {
   color: blue;
 }
 
-
 article {
   font-size: 18px;
-  font-family: 'cesko.digital', sans-serif;
+  font-family: "cesko.digital", sans-serif;
   max-width: 800px;
   margin: 2em auto;
+  display: flex;
+  justify-content: space-between;
+  background-color: #fcc;
+}
+
+article .content .title {
+  margin-bottom: 1em;
+  font-size: 20px;
+}
+
+article .image-container img,
+article .image-container video {
+  max-width: 500px;
+  max-height: 250px;
+  object-fit: contain;
+  display: block;
+}
+
+article .content {
+  padding: 1em;
 }

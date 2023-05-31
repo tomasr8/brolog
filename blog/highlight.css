@@ -123,3 +123,19 @@ h1 {
 .highlight-parenthesis {
   color: #82c0ff;
 }
+
+table {
+  margin-left: auto;
+  margin-right: auto;
+  border-collapse: collapse;
+}
+
+table td,
+table th {
+  padding: .3em 1em;
+  text-align: center;
+}
+
+table thead tr {
+  border-bottom: 1px solid black;
+}

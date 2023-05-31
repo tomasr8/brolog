@@ -23,34 +23,52 @@
       integrity="sha384-G0zcxDFp5LWZtDuRMnBkk3EphCK1lhEf4UEyEM693ka574TZGwo4IWwS6QLzM/2t"
       crossorigin="anonymous"
     ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/contrib/auto-render.min.js"
+      integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+      crossorigin="anonymous"
+      onload="renderMathInElement(document.body);"
+    ></script>
 
     <link href="highlight.css" rel="stylesheet" />
   </head>
   <body>
     <main>
       <article style="width: 800px; margin: 0 auto">
-        <!-- <div style="font-family: 'Noto Serif', serif"> -->
         <div>
           <h1>Prolog from scratch</h1>
           <p>
             If you've ever wondered how Prolog works under the hood, you'll find
-            out that it's actually not that complicated.
+            out that it's actually not that complicated. (And yes, this includes
+            cuts as well)
           </p>
         </div>
         <div>
           <h2>Prolog crash-course</h2>
           <p>
-            If you're already familiar with Prolog you can skip this section. If
-            you don't know anything about Prolog, this is a 2-minute tutorial
-            which will cover the basics. If you're still interested afterwards,
-            I suggest looking some more in-depth tutorials.
+            If you're already familiar with Prolog you can skip this section.
+            This is a 2-minute Prolog 101 which will cover just the basics. If
+            you're still interested afterwards, I suggest looking up some more
+            in-depth tutorials afterwards.
           </p>
           <p>
-            Here, I want to quickly showcase the power of Prolog and what makes
-            it special compraed to other languages. Prolog, like SQL, .. is a
-            declarative language. At its core it is a database of facts, a sort
-            of a knowledge base, which can be queried. Consider this simple
-            Prolog program:
+            There is a Github repo to go with this tutorial which you can check
+            out here. Each code sample that I give here also contains a link to
+            the commit.
+          </p>
+          <p>
+            So let's have a look what Prolog is all about and what makes it
+            special. Prolog is a logical and declarative programming language.
+            You are probably already familiar with declarative languages like
+            SQL, in which you typically specify what you want and you let the
+            language figure out how to give it to you. Logic programming
+            languages are closely related to mathematical logic. In the case of
+            Prolog, it is based on what is called First-Order (or Predicate)
+            logic. At its core, Prolog is just database of facts expressed in
+            First-Order logic which can be queried. That is, we can ask Prolog
+            if something is true given some facts. Let's see some simple
+            examples:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -59,66 +77,68 @@
             </div>
             <div class="code">
               <pre><code>
-parent(george,elizabeth).
+parent(george, elizabeth).
 parent(george, margaret).
-parent(elizabeth,charles).
-parent(philip,charles).
-parent(elizabeth,edward).
-parent(philip,edward).
-parent(charles,william).
-parent(diana,william).
-parent(charles,harry).
-parent(diana,harry).
+parent(elizabeth, charles).
+parent(philip, charles).
+parent(elizabeth, edward).
+parent(philip, edward).
               </code></pre>
             </div>
           </div>
           <p>
-            In this example, we have 3 facts. Each fact in prolog is a predicate
-            with a name and arguments. Our city predicate is simply establishing
-            what is a city. Prolog operates on symbols such as 'goerge' and
-            'elizabeth' here, there's no need for quotes or anything like that.
-            Anyhting that starts with a lowercase letter is treated as a
-            constant.
+            This is a simple Prolog program - we have 6 facts describing a
+            predicate called 'parent'. The arguments are Prolog constants (in
+            the language of logic, atoms). Anything that starts with a lowercase
+            letter is treated as a constant in Prolog.
           </p>
-          <p>
-            Now we can query this 'database' and ask if something is a city: -?
-            city(Munich). - false. ?- city(Prague). - true.
-          </p>
-          <pre><code>
-            ?- parent(george, elizabeth).
-            - true.
+          <p>Now we can take this program and ask questions about it:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+?- parent(george, elizabeth).
+- true.
 
-            ?- parent(margaret, elizabeth).
-            - false.
-          </code></pre>
+?- parent(margaret, elizabeth).
+- false.
+              </code></pre>
+            </div>
+          </div>
           <p>
-            And Prolog responds accoringly. This is admittedly not very useful.
-            All that that Prolog has to do is search the database and check if
-            the fact exists in the database or not.
+            First, we asked if 'george' is a parent of 'elizabeth' and Prolog
+            returned 'true'. Next, we asked whether 'parent(margaret,
+            elizabeth)' and Prolog returned 'false'. To answer these queries,
+            Prolog simply checks if the query exists in the program. This on its
+            own is not that useful, so let's what else we can do:
           </p>
           <pre><code>
             ?- parent(george, X).
             - X = elizabeth.
+            - X = margaret.
 
             ?- parent(X, Y).
             - X = george, Y = elizabeth.
-            - ...
-            - ...
+            - X = george, Y = margaret.
+            - X = elizabeth, Y = charles.
+            - X = george, Y = charles.
+            - X = elizabeth, Y = edward.
+            - X = philip, Y = edward.
           </code></pre>
           <p>
-            But now comes the part which makes prolog incredibly powerful. -?
-            city(X). - Prague. - Berlin. - Warsaw.
+            So what happened here? Rather than asking Prolog if some fact is in
+            the database, we can ask for all results that match our query by
+            using variables. (Prolog considers anything that starts with an
+            upercase letter to be a variable) When Prolog sees that the query
+            has a variable, it tries to find all assignments that satisfy the
+            query.
           </p>
           <p>
-            So what happened here? Rather than asking Prolog is something is in
-            the database, we can ask it for all the results that match our
-            query. Here, we used a variable X, which signals to Prolog to find
-            all matching facts.
-          </p>
-          <p>
-            Ok, so we can use Variables and Prolog will give us all answers that
-            satisfy the query. That still does not make it very useful. However,
-            Prolog also allows to specify rules. A rule looks like this:
+            For now, we've only worked with simple facts, but Prolog also
+            includes 'conditionals', in the language of logic, clauses. Let's
+            use a clause to implement an 'ancestor' predicate:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -127,61 +147,104 @@ parent(diana,harry).
             </div>
             <div class="code">
               <pre><code>
-parent(Mary, Henry).
-parent(Henry, Harold).
-
 ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
               </code></pre>
             </div>
           </div>
           <p>
-            A rule in Prolog is basically a special kind of implication a,b =>
-            c. You can see it if you read the rule backwards. Basically, this is
-            saying that if parent(X, Z), ancestor(Z, Y) for some X,Y and Z, then
-            ancestor(X, Y).
+            A Prolog clause is basically an implication. The above reads as: IF
+            (parent(X, Z) AND ancestor(Z, Y)) THEN ancestor(X, Y). Basically,
+            you have to read it backwards. Let's have a look:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+?- ancestor(george, elizabeth).
+- true.
+
+?- ancestor(george, charles).
+- true.
+              </code></pre>
+            </div>
+          </div>
+          <p>We can of course ask for all ancestors of a person, e.g.:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+?- ancestor(X, charles).
+- X = elizabeth.
+- X = philip.
+- X = george.
+- X = edward.
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            And here lies the power of Prolog. Just by merely defining the
+            'ancestor' predicate, we can not only ask if someone is someone
+            else's ancestor but we can also ask Prolog to generate all ancestors
+            according to the rules that we gave it. The only difference is that
+            we use variables instead of constants, which is pretty neat. Imagine
+            trying to implement this in another language.
           </p>
           <p>
-            So once we have this, we can of course ask Prolog: ?- ancestor(Mary,
-            Henry). - true.
+            Prolog being closely related to First-Order logic has support for
+            functions as well. Functions in Prolog, as in First-Order logic, are
+            purely syntactic in nature (also called uninterpreted functions).
+            They are used to build structure and to form compound terms from
+            simple terms. In fact, Prolog does not have any built-in
+            data-structures. We'll show one example of functions which is to
+            define lists:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+is_list(list()).
+is_list(list(Head, Tail)) :- is_list(Tail).
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            This definition basically says that an empty list (denoted as the
+            argument-less function `list()`) is a list. Then, we recursively
+            define a list as any list function with a head and a tail which is
+            again a list. This kind of a linked list is similar to how lists are
+            used in Lisp.
+          </p>
+          <p>We can also define operations on lists such as the length:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+length(list(), 0).
+length(list(Head, Tail), NN) :- length(Tail, N), increment(N, NN).
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            (We assume that we have previously defined the 'increment' predicate
+            which just increments by one)
           </p>
           <p>
-            But we can also ask for all ancestors ?- ancestor(Mary, X). - X =
-            Henry
+            This concludes our Prolog crash-course. To summarize, in Prolog you
+            define predicates which can either be simple facts like
+            'parent(george, elizabeth)' or clauses which can be thought of as
+            logical implications. When given a query, Prolog will try to find a
+            variable assignment that satisfies all clauses.
           </p>
-          <p>
-            The power of Prolog is that by defining the rules, we can not only
-            check if something is true, but we can prolog to generate answers
-            which satisfy our conditions just by putting in variables, which is
-            pretty neat. Imagine trying to implement this in another language.
-          </p>
-          <p>
-            Prolog is actually closesly related to First-order logic and such
-            supports functions as well. Functions in Prolog, as in First-Order
-            logic are purely syntactic in nature. They are used to build
-            structure and to form compound terms from simple terms since Prolog
-            does not have any built-in data-structures. A natural use for
-            functions is to define lists.
-          </p>
-          <pre><code>
-            is_list(list()).
-            is_list(list(Head, Tail)) :- is_list(Tail).
-          </code></pre>
-          <p>
-            This definition basically says that an empty list (denoted as
-            `list()`) is a list. Then it recusrively defines a list as anything
-            which is the list function with a head and a tail which is again a
-            list. This kind is essentially the same a lists in Lisp.
-          </p>
-          <p>
-            Using this list we can define operations on lists. For example, we
-            ask Prolog for its length:
-          </p>
-          <pre><code>
-            length(list(), 0).
-            length(list(Head, Tail), NN) :- length(Tail, N), increment(N, NN).
-          </code></pre>
         </div>
-        <div>
+        <!-- <div>
           <h2>How Prolog actually works</h2>
           <p>
             Prolog is essentially just a restricted form of First-Order
@@ -192,12 +255,21 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
             predicate. This makes it possible to systemcatically search
             resulting tree and the complexity becomes linear.
           </p>
-        </div>
+        </div> -->
         <div>
           <h2>Getting our hands dirty</h2>
           <p>
-            Let's start by implementing the building blocks that will allows us
-            represent elements of First-Order logic.
+            This is the part where we actually start implementing our own
+            verions of Prolog. If you skipped the tutorial, you can start
+            reading from here.
+          </p>
+          <p>
+            We'll be using Python version >=3.10 since it includes structural
+            pattern matching which will come in handy as we shall see later.
+          </p>
+          <p>
+            Let's start by defining the basic elements of First-Order logic
+            which are used by Prolog:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -235,8 +307,8 @@ class Function(Term):
             </div>
           </div>
           <p>
-            Let's try it out: Atom('c') -> c Function('f', args=[Atom('a'),
-            Function('g', args=[Atom('b')])]) -> f(a, g(b))
+            We added the dunder 'repr' to have a nice print output. Let's try it
+            out:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -253,7 +325,7 @@ class Function(Term):
               </code></pre>
             </div>
           </div>
-          <p>Let's also add variables:</p>
+          <p>Let's also add variables..</p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">core.py</div>
@@ -269,32 +341,95 @@ class Function(Term):
 +    def __init__(self, name):
 +        self.name = name
 +
-+    def __str__(self):
++    def __repr__(self):
 +        return self.name
               </code></pre>
             </div>
           </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> Variable('X')
+'X'
+>>> Function('f', args=[Variable('X')])
+'f(X)'
+              </code></pre>
+            </div>
+          </div>
+          <p>..and predicates</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
++class Symbol:
++    """Base class for terms and predicates"""
+
+-class Term:
++class Term(Symbol):
+    """Base class for atoms, functions & variables"""
+...
++class Predicate(Symbol):
++    """A predicate, e.g., `P(X, f(Y))`. Predicates can be assigned truth values."""
++
++    def __init__(self, name, args: list[Term]):
++        self.name = name
++        self.arity = len(args)
++        self.args = args
++
++    def __repr__(self):
++        args = ', '.join([repr(arg) for arg in self.args])
++        return f'{self.name}({args})'
+              </code></pre>
+            </div>
+          </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> Predicate('P', args=[Variable('X'), Atom('x')])
+'P(X, c)'
+>>> Predicate('P', args=[Function('f', args=[Variable('X')])])
+'P(f(X))'
+              </code></pre>
+            </div>
+          </div>
           <p>
-            As we will see the core of Prolog relies on just a handful of
-            operations on these objects. Most notably substitution and
-            unification.
+            We will now define some operations that can act on these objects. As
+            we will see, the core of Prolog relies on just two operations -
+            substitution and unification.
           </p>
         </div>
         <div>
           <h2>Substitution</h2>
           <p>
-            In Prolog, and in Predicate logic, variables represent other terms -
-            atoms, functions, and other variables. Image we have this
-            substitution:
+            Substitution in Prolog works the same way as in First-Order logic.
+            When we have term, we might want to replace all occurences of a
+            variable with the value of that variable. This is called a
+            substitution. Let's see a simple example:
           </p>
-          <div class="latex">\{ X \rightarrow c, Y \rightarrow f(b) \}</div>
-          <div class="latex">P(X, Y)</div>
-          <p>The result would be:</p>
-          <div class="latex">P(c, f(b))</div>
+          <div class="latex">S = \{ X \leftarrow c, Y \leftarrow f(b) \}</div>
+          <div class="latex">P(X, Y, Z)</div>
           <p>
-            Let's write a function which given a predicate and a substitution,
-            substitutes all variables in the predicate according to the
-            substitution.
+            Here, \(S\) is a set of variable assignments and \(P\) is our
+            predicate in which we want to substitute varibles from \(S\). This
+            is the result of the substitution:
+          </p>
+          <div class="latex">P(c, f(b), Z)</div>
+          <p>
+            \(X\) and \(Y\) are present in \(S\) and thus get substituted. \(Z\)
+            is not a member of \(S\) and thus does not change.
+          </p>
+          <p>
+            Now that we know how substitution works, let's write a function
+            which given a predicate and a substitution, substitutes all
+            variables in the predicate according to the substitution:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -325,16 +460,19 @@ def substitute(node: Symbol, substitution: dict[Variable, Term]) -> Symbol:
             </div>
           </div>
           <p>
-            Here we are taking full advantage of Python's pattern matching. We
-            basically have 4 cases to check for. If the we have an atom, we just
-            return as there is nothing to do. A predicate and a a function will
-            subsitutute its arguments. If we encounter a variable we check if it
-            exists in the subsitution. Here we need a while loop as there could
-            be chain of variables e.g. X -> Y -> f(a)
+            Here we are taking full advantage of Python's pattern matching
+            capabilities. We have 4 cases to check for. If we see an atom, we
+            just return it there is nothing to do. A predicate and a function
+            will both recursively call 'susbtitute' on its arguments and then
+            return. If we encounter a variable, we look it up in the
+            substitution dictionary. Here we use dictionary lookup in a loop as
+            the dictionary might contain a chain of assignments like $$ \{X
+            \leftarrow Y, Y \leftarrow f(a)\} $$ in which case we want to
+            substitute \(X\) for \(f(a)\) and not simply \(Y\).
           </p>
           <p>
-            In this function we are using our Variable instances as keys in a
-            dictionary, s we just need to make them hashable to make it work.
+            Our substitution dictionary uses variables as keys so we will also
+            to implement the dunder 'hash' method to make variables hashable:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -357,19 +495,21 @@ class Variable(Term):
               </code></pre>
             </div>
           </div>
-          <p>Let's try it out:</p>
+          <p>Let's give the function a spin:</p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
             <div class="code">
               <pre><code>
->>> X = Variable('X'); P = Predicate("P", args=[X]), c = Atom('c')
->>> S = {X: c}
+>>> X = Variable('X'); c = Atom('c'); S = {X: c}
+>>> P = Predicate("P", args=[X])
+'P(X)'
 >>> substitute(P, S)
 'P(c)'
->>> X = Variable('X'); Y = Variable('Y'); Z = Variable('Z')
->>> f = Function('f', args=[Z]); c = Atom('c')
+>>> X = Variable('X'); Y = Variable('Y'); Z = Variable('Z'); c = Atom('c')
+>>> f = Function('f', args=[Z]);
+'f(Z)'
 >>> P = Predicate('P', args=[X, Y])
 'P(X, Y)'
 >>> S = {X: f, Y: c}
@@ -383,33 +523,87 @@ class Variable(Term):
           <h2>Unification</h2>
           <p>
             The second operation we will need is unification. In simple terms,
-            unification decides if one predicate can be transformed into another
-            using a substitution. This transformation has a precise mathematical
-            definition, but you can get a feel for it from these examples:
+            given two terms unification decides if one term can be transformed
+            into another using an appropriate unifying substitution. A
+            unification can therefore either succeed producing a subsitution as
+            a result, or fail if there is no substitution which can unify the
+            terms. This is a pretty general definition so let's have a look at
+            some concrete examples:
           </p>
-          <div class="latex">P(X), P(c), \{ X \rightarrow c \}</div>
-          <div class="latex">P(X), P(Y), \{ X \rightarrow Y \}</div>
-          <div class="latex">P(f(a)), P(X), \{ X \rightarrow f(a) \}</div>
-          <div class="latex">
-            P(X, Y), P(c, X), \{ X \rightarrow c, Y \rightarrow c \}
-          </div>
-          <p>All of these succefully unify, whereas these examples do not:</p>
-          <div class="latex">
-            P(X), Q(c) // \text{Predicate names must match}
-          </div>
-          <div class="latex">
-            P(X), P(X, Y) \text{// Predicate arity must match}
-          </div>
-          <div class="latex">
-            P(X, X), P(a, b) \text{// Conflicting substitutions for X}
-          </div>
-          <div class="latex">
-            P(X), P(f(X)), \text{// X cannot be contained in itself}
-          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Input</th>
+                <th>Resulting substitution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>\(c = c\)</td>
+                <td>\(\{\}\)</td>
+              </tr>
+              <tr>
+                <td>\(X = c\)</td>
+                <td>\(\{ X \leftarrow c \}\)</td>
+              </tr>
+              <tr>
+                <td>\(X = Y\)</td>
+                <td>\(\{ X \leftarrow Y \}\)</td>
+              </tr>
+              <tr>
+                <td>\(f(a) = X\)</td>
+                <td>\(\{ X \leftarrow f(a) \}\)</td>
+              </tr>
+              <tr>
+                <td>\(f(X, c) = f(g(Z), Y)\)</td>
+                <td>\(\{ X \leftarrow g(Z), Y \leftarrow c \}\)</td>
+              </tr>
+              <tr>
+                <td>\(f(X, Z) = f(g(Z), c)\)</td>
+                <td>\(\{ X \leftarrow g(c), Y \leftarrow c \}\)</td>
+              </tr>
+            </tbody>
+          </table>
           <p>
-            As we've seen a unification can either succeed with and gives a
-            substitution or it can fail. Prolog uses unification to decide which
-            rules it can match. Let's see how we might implement it ourselves:
+            Here are some examples of when it is not possible unify two terms:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Input</th>
+                <th>Note</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>\(a = b\)</td>
+                <td>Constants must be the same</td>
+              </tr>
+              <tr>
+                <td>\(f(c) = g(c)\)</td>
+                <td>Function names must match</td>
+              </tr>
+              <tr>
+                <td>\(f(a) = f(a, b)\)</td>
+                <td>Function arity must be the same</td>
+              </tr>
+              <tr>
+                <td>\(f(X, X) = f(a, b)\)</td>
+                <td>Conflicting substitutions for X</td>
+              </tr>
+              <tr>
+                <td>\(X = f(X)\)</td>
+                <td>X cannot be contained within itself</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Unification is used by Prolog to figure out which clauses it can
+            apply and which it cannot. Consider this example:
+          </p>
+          <p>
+            Now that we have a good idea of what unification does, let's see how
+            we might implement it ourselves:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -445,7 +639,7 @@ def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
 
                 if (new := unify(a, b)) is None:
                     return
-                current |= new
+                current = substitute(current) | new
             return current
               </code></pre>
             </div>
@@ -497,8 +691,8 @@ def contains(term: Term, x: Variable):
         <div>
           <h2>Putting it all together</h2>
           <p>
-            Before we get to the core of the algorithm,
-            we'll just one need one helper class to represent a prolog clause
+            Before we get to the core of the algorithm, we'll just one need one
+            helper class to represent a prolog clause
           </p>
           <div class="code-sample">
             <div class="header">
@@ -527,10 +721,22 @@ class Clause:
             </div>
           </div>
           <p>
-            The Clause class has a head which is a single predicate and an optional body - a list of predicates.
-            We just add a friendly repr so that we can print it as well.
+            The Clause class has a head which is a single predicate and an
+            optional body - a list of predicates. We just add a friendly repr so
+            that we can print it as well.
           </p>
-          <p>We are now ready to write the main algorithm.</p>
+          <p>
+            We are now ready to write the main algorithm. Before we get to
+            writing the code let's first sketch the main ideas. We've got our
+            Prolog program which just a list of rules and our query which for
+            now just assume is a single predicate. What we need to do is take
+            the query and try to unify it with the head of each of our rules. If
+            the query unifies and the rule has no body, we are finished, just
+            print out the substitution. If the rule does have a body, we will
+            recursively try to satisfy each predicate in the body of the rule
+            while maintaining all the previous subsitutions. We finish when we
+            have no predicates left and we are left with the final substitution.
+          </p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">core.py</div>
@@ -619,10 +825,6 @@ parent_cut(X, Y) :- parent(X, Y), !.
             throwOnError: true,
           });
         });
-        // const elem = document.getElementById("latex");
-        // katex.render("c = \\pm\\sqrt{a^2 + b^2}", elem, {
-        //   throwOnError: false,
-        // });
       });
     </script>
   </body>
