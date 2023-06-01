@@ -95,7 +95,8 @@ h1 {
 }
 
 .highlight-function,
-.highlight-identifier {
+.highlight-identifier,
+.highlight-constant {
   color: #47a3ff;
 }
 

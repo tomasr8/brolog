@@ -109,14 +109,14 @@ const builtins = [
 
 const patterns = [
   ["keyword", new RegExp(`^(?:${keywords.join("|")})\\b`)],
-  ["constant", /^False|True/],
+  ["constant", /^(?:False|True)/],
   ["string", /^('''|""").*?\1/ms],
   ["string", /^('|").*?\1/],
   ["operator", /^[=+\-*/%&|<>!]/],
   ["parenthesis", /^[\[\](){}]/],
   ["special", /^[;,:.]/],
   ["comment", /^#.*/],
-  ["number", /^[0-9]|[1-9][0-9]+/],
+  ["number", /^(?:[0-9]|[1-9][0-9]+)/],
   ["identifier", /^[a-zA-Z_][a-zA-Z_0-9]*/],
   ["whitespace", /^\s+/],
 ];
@@ -141,10 +141,10 @@ function tokenizeLine(line) {
   // console.log(">>>>", line);
   let bg;
   if (line[0] === "+") {
-    bg = "#4293421f";
+    bg = "#42934245";
     line = line.slice(1);
   } else if (line[0] === "-") {
-    bg = "rgba(229,83,75,0.1)";
+    bg = "rgba(229, 83, 75, 0.28)";
     line = line.slice(1);
   }
 
@@ -225,7 +225,7 @@ function makeHTML(lines) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  [...document.querySelectorAll('.code pre code')].forEach(node => {
+  [...document.querySelectorAll('.code:not(.prolog) pre code')].forEach(node => {
     node.innerHTML = makeHTML(postProcessLines(tokenize(node.textContent.trim())))
   })
 });

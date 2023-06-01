@@ -75,7 +75,7 @@
               <div class="filename">database.pl</div>
               <div class="commit-sha"><a href="#">34hj6k5</a></div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 parent(george, elizabeth).
 parent(george, margaret).
@@ -97,7 +97,7 @@ parent(philip, edward).
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 ?- parent(george, elizabeth).
 - true.
@@ -114,19 +114,26 @@ parent(philip, edward).
             Prolog simply checks if the query exists in the program. This on its
             own is not that useful, so let's what else we can do:
           </p>
-          <pre><code>
-            ?- parent(george, X).
-            - X = elizabeth.
-            - X = margaret.
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- parent(george, X).
+- X = elizabeth.
+- X = margaret.
 
-            ?- parent(X, Y).
-            - X = george, Y = elizabeth.
-            - X = george, Y = margaret.
-            - X = elizabeth, Y = charles.
-            - X = george, Y = charles.
-            - X = elizabeth, Y = edward.
-            - X = philip, Y = edward.
-          </code></pre>
+?- parent(X, Y).
+- X = george, Y = elizabeth.
+- X = george, Y = margaret.
+- X = elizabeth, Y = charles.
+- X = george, Y = charles.
+- X = elizabeth, Y = edward.
+- X = philip, Y = edward.
+              </code></pre>
+            </div>
+          </div>
           <p>
             So what happened here? Rather than asking Prolog if some fact is in
             the database, we can ask for all results that match our query by
@@ -145,7 +152,7 @@ parent(philip, edward).
               <div class="filename">core.py</div>
               <div class="commit-sha"><a href="#">34hj6k5</a></div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
               </code></pre>
@@ -160,7 +167,7 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 ?- ancestor(george, elizabeth).
 - true.
@@ -175,7 +182,7 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 ?- ancestor(X, charles).
 - X = elizabeth.
@@ -206,8 +213,9 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
+list(a, list(b, list(c, list())))
 is_list(list()).
 is_list(list(Head, Tail)) :- is_list(Tail).
               </code></pre>
@@ -225,10 +233,13 @@ is_list(list(Head, Tail)) :- is_list(Tail).
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
             </div>
-            <div class="code">
+            <div class="code prolog">
               <pre><code>
 length(list(), 0).
 length(list(Head, Tail), NN) :- length(Tail, N), increment(N, NN).
+
+last(list(Last, list()), Last).
+last(list(Head, Tail), Last) :- last(Tail, Last).
               </code></pre>
             </div>
           </div>
@@ -564,9 +575,7 @@ class Variable(Term):
               </tr>
             </tbody>
           </table>
-          <p>
-            Here are some examples of when it is not possible unify two terms:
-          </p>
+          <p>Here are some examples of when terms do *not* unify:</p>
           <table>
             <thead>
               <tr>
@@ -598,12 +607,70 @@ class Variable(Term):
             </tbody>
           </table>
           <p>
-            Unification is used by Prolog to figure out which clauses it can
-            apply and which it cannot. Consider this example:
+            Unification also naturaly extends to lists of terms or predicates.
+            It is also possible to unify lists of terms or predicates
           </p>
           <p>
-            Now that we have a good idea of what unification does, let's see how
-            we might implement it ourselves:
+            Now that we have a better idea of how unification works, let's see
+            how we might implement it. This arguably the most complicated part
+            of the implementation so we will start slow:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Term | list[Term], y: Term | list[Term]):
+    match (x, y):
+        case (Atom(), Atom()) if x.name == y.name:
+            return {}
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Our function accepts two arguments \(x\) and \(y\) which can be a
+            single term or a list of terms. For now we are only handling atoms.
+            If we encounter two atoms with the same name we return an empty
+            substitution. Otherwise we return 'None' which is going to signal
+            failure to unify. Let's try it out:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> a1 = Atom('a'); a2 = Atom('a'); b = Atom('b')
+>>> unify(a1, b2)
+{}
+>>> unify(a1, b)
+None
+              </code></pre>
+            </div>
+          </div>
+          <p>Time to add variables into the mix:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
++        case Variable(), (Atom() | Function()) as term:
++            return {x: term}
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            If \(x\) is a variable and \(y\) is an atom or a function, we simply
+            assign it to the variable. We will do the same when \(x\) and \(y\)
+            are flipped:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -614,23 +681,231 @@ class Variable(Term):
               <pre><code>
 def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
     match (x, y):
-        case (Atom(), Atom()) if x.name == y.name:
+        case Atom(), Atom() if x.name == y.name:
             return {}
+        case Variable(), (Atom() | Function()) as term:
+            return {x: term}
++        case (Atom() | Function()) as term, Variable():
++            return {y: term}
+              </code></pre>
+            </div>
+          </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> X = Variable('X'); c = Atom('c'); f = Function('f', args=[c])
+>>> unify(X, c)
+{X: 'c'}
+>>> unify(f, X)
+{X: 'f(c)'}
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            We need a special case for when \(x\) and \(y\) are both variables.
+            In that case we need to check first if the variables are equal. We
+            have a choice now how to define variable equality. We could do what
+            we did with atoms and consider a pair of variables equal if they
+            have the same name. This could be a little dangerous as we would
+            always have to be carefoul when creating a new variable if another
+            variable might already ave the same name. If we need to relabel a
+            variable, we need to come up with some naming scheme. A better
+            approach is to delegate to Python object equality. That is two
+            variable are equal if they are the same object. This is nice because
+            we don't have to worry about unique names. Every time we create a
+            new variable it is by definition unique. Let's see a quick summary
+            in code:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> X1 = Variable('X'); X2 = Variable('X')
+>>> X1 == X2
+False
+>>> X1 == X1
+True
+              </code></pre>
+            </div>
+          </div>
+          <p>Now we can add the missing case to our 'unify' function:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
+        case Variable(), (Atom() | Function()) as term:
+            return {x: term}
+        case (Atom() | Function()) as term, Variable():
+            return {y: term}
++        case (Variable(), Variable()):
++            if x == y:
++                return {}
++            else:
++                return {x: y}
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            We do an equality check and if the variables are equal we return an
+            empty substitution. Otherwise we assign y to x. Note that we could
+            also just as good assign x to y.
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> X = Variable('X'); Y = Variable('Y')
+>>> unify(X, Y)
+{X: Y}
+>>> unify(X, X)
+{}
+              </code></pre>
+            </div>
+          </div>
+          <p>We should also handle functions:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
+        case Variable(), (Atom() | Function()) as term:
+            return {x: term}
+        case (Atom() | Function()) as term, Variable():
+            return {y: term}
++        case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
++            return unify(x.args, y.args)
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            If we have two functions with the same name and arity, we simply
+            recurse into the arguments. Otherwise we return None.
+          </p>
+          <p>
+            So far this wasn't so difficult, but now comes the more challenging
+            part. We have to handle the case when we are trying to unify two
+            lists. The logic is going to be as follows. Assuming the lists have
+            the same length, we try to unify the first element of each list. We
+            keep the result as a partial substitution which we will add to. We
+            take our partial substitution and subsitute it into the remaining
+            elements of both lists. Now we take another two elements and repeat
+            the process.
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
+        case Variable(), (Atom() | Function()) as term:
+            return {x: term}
+        case (Atom() | Function()) as term, Variable():
+            return {y: term}
         case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
             return unify(x.args, y.args)
-        case (Predicate(), Predicate()) if x.name == y.name and x.arity == y.arity:
++        case (list(), list()) if len(x) == len(y):
++            current = {}
++            for a, b in zip(x, y):
++                a = substitute(a, current)
++                b = substitute(b, current)
++ 
++                if (new := unify(a, b)) is None:
++                    return
++                current = substitute(current) | new
++            return current
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            This the whole function. The only thing that is missing is an occurs
+            check - we never want to assign a term to variable which itself
+            contains the variable like \(X = f(X)\). This check is easy enough:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
+        case Variable(), (Atom() | Function()) as term:
+-            return {x: term}
++            if not contains(term, x):
++                return {x: term}
+        case (Atom() | Function()) as term, Variable():
+-            return {y: term}
++            if not contains(term, y):
++                return {y: term}
+        case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
             return unify(x.args, y.args)
-        case (Variable(), Variable()):
-            if x == y:
-                return {}
-            else:
-                return {x: y}
-        case (Variable(), (Atom() | Function()) as term):
+        case (list(), list()) if len(x) == len(y):
+            current = {}
+            for a, b in zip(x, y):
+                a = substitute(a, current)
+                b = substitute(b, current)
+
+                if (new := unify(a, b)) is None:
+                    return
+                current = substitute(current) | new
+            return current
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            One last change we will do is to add support for Predicates which
+            will come in handy later:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+-    def unify(x: Term | list[Term], y: Term | list[Term]):
++    def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
+    match (x, y):
+        case Atom(), Atom() if x.name == y.name:
+            return {}
+        case Variable(), (Atom() | Function()) as term:
             if not contains(term, x):
                 return {x: term}
-        case ((Atom() | Function()) as term, Variable()):
+        case (Atom() | Function()) as term, Variable():
             if not contains(term, y):
                 return {y: term}
+        case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
+            return unify(x.args, y.args)
++        case (Predicate(), Predicate()) if x.name == y.name and x.arity == y.arity:
++            return unify(x.args, y.args)
         case (list(), list()) if len(x) == len(y):
             current = {}
             for a, b in zip(x, y):
@@ -663,11 +938,11 @@ def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
             repeat.
           </p>
           <p>
-            In the code, we reference a helper function called 'contains(term,
-            X)' which returns True if the term contains variable X anywhere in
-            it. As an exercise with recursion and pattern matching you can try
-            to implement this function yourself ;) Otherwise, you can have a
-            look here:
+            In the code, we reference the helper function 'contains' which
+            returns True if the term contains variable X anywhere in it. As an
+            exercise with recursion and pattern matching you can try to
+            implement this function yourself ;) Otherwise, you can have a look
+            here:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -691,8 +966,9 @@ def contains(term: Term, x: Variable):
         <div>
           <h2>Putting it all together</h2>
           <p>
-            Before we get to the core of the algorithm, we'll just one need one
-            helper class to represent a prolog clause
+            Before we get to the main algorithm, we'll just need one helper
+            class to represent a Prolog clause. A list of these clauses will
+            constitute a Prolog program.
           </p>
           <div class="code-sample">
             <div class="header">
@@ -703,8 +979,8 @@ def contains(term: Term, x: Variable):
               <pre><code>
 class Clause:
     """A Prolog clause, e.g,
-    
-    connected(A, C) :- connected(A, B), connected(B, C).
+
+    ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
     """
 
     def __init__(self, head: Predicate, body: list[Predicate] = []):
@@ -722,9 +998,25 @@ class Clause:
           </div>
           <p>
             The Clause class has a head which is a single predicate and an
-            optional body - a list of predicates. We just add a friendly repr so
-            that we can print it as well.
+            optional body - a list of predicates. If think of clauses as
+            implications, the body are the preconditions and the head is
+            something that must be true if the preconditions are met.
           </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+>>> X = Variable('X'); Y = Variable('Y')
+>>> P = Predicate('P', args=[X])
+>>> Q = Predicate('Q', args=[Y])
+>>> R = Predicate('R', args=[Y])
+>>> C = Clause(head=P, body=[Q, R])
+'P(X) :- Q(Y), R(Y).'
+              </code></pre>
+            </div>
+          </div>
           <p>
             We are now ready to write the main algorithm. Before we get to
             writing the code let's first sketch the main ideas. We've got our
@@ -774,6 +1066,13 @@ def query(rules: list[Rule], stack: list[Predicate], substitution):
             recurse.
           </p>
           <p>
+            Before run unification, we first relabel all the variables in the
+            rule head and body. We need to do this because the stack might
+            contain predicates with the same variables from a previous
+            application of this rule but variables in separate applications
+            should be treated as different.
+          </p>
+          <p>
             The great part about Prolog is that we don't need to disinguish
             between trying to prove a fact and searching for substitutions which
             satisfy the given conditions. For Prolog is is one and the same.
@@ -817,7 +1116,8 @@ parent_cut(X, Y) :- parent(X, Y), !.
         </div>
       </article>
     </main>
-    <script src="highlight.js"></script>
+    <script src="highlight.js" type="module"></script>
+    <script src="highlight-prolog.js" type="module"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         [...document.querySelectorAll(".latex")].forEach((node) => {
