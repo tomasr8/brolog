@@ -113,7 +113,8 @@ const patterns = [
   ["string", /^('''|""").*?\1/ms],
   ["string", /^('|").*?\1/],
   ["operator", /^[=+\-*/%&|<>!]/],
-  ["parenthesis", /^[\[\](){}]/],
+  ["parenthesis", /^[(){}]/],
+  ["bracket", /^[\[\]]/],
   ["special", /^[;,:.]/],
   ["comment", /^#.*/],
   ["number", /^(?:[0-9]|[1-9][0-9]+)/],
@@ -201,6 +202,13 @@ function postProcess(tokens) {
       processed.push(second);
       processed.push({ type: "function-def", value: third.value });
       i += 3;
+    } else if (
+      first.type === "identifier" &&
+      second.type === "parenthesis" &&
+      second.value === "("
+    ) {
+      processed.push({...first, type: 'func-call'});
+      i++;
     } else {
       processed.push(first);
       i++;
@@ -225,7 +233,11 @@ function makeHTML(lines) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  [...document.querySelectorAll('.code:not(.prolog) pre code')].forEach(node => {
-    node.innerHTML = makeHTML(postProcessLines(tokenize(node.textContent.trim())))
-  })
+  [...document.querySelectorAll(".code:not(.prolog) pre code")].forEach(
+    (node) => {
+      node.innerHTML = makeHTML(
+        postProcessLines(tokenize(node.textContent.trim()))
+      );
+    }
+  );
 });

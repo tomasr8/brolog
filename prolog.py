@@ -133,7 +133,6 @@ def substitute(node: Symbol, substitution: dict[Variable, Term]) -> Symbol:
                 v = substitution[v]
             return v
 
-
 def relabel(rule: Rule):
     class Substitution(dict):
         def __missing__(self, v: Variable):
