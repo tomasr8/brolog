@@ -107,7 +107,8 @@ h1 {
 .highlight-function,
 .highlight-identifier,
 .highlight-constant {
-  color: #47a3ff;
+  /* color: #47a3ff; */
+  color: #99b0b1;
 }
 
 .highlight-function-def,
@@ -136,7 +137,8 @@ h1 {
 }
 
 .highlight-func-call {
-  color: #fda85d;
+  /* color: #fda85d; */
+  color: #47a3ff;
 }
 
 table {
