@@ -28,7 +28,8 @@ h2 {
   margin-top: 2em;
 }
 
-p, table {
+p,
+table {
   font-size: 18px;
   color: rgb(71, 71, 91);
 }
@@ -100,7 +101,8 @@ h1 {
 
 .highlight-keyword,
 .highlight-operator,
-.highlight-bracket {
+.highlight-bracket,
+.highlight-implies {
   color: #ff6192;
 }
 
@@ -136,7 +138,8 @@ h1 {
   color: #ffd500;
 }
 
-.highlight-func-call {
+.highlight-func-call,
+.highlight-variable {
   /* color: #fda85d; */
   color: #47a3ff;
 }
@@ -159,4 +162,9 @@ table thead tr {
 
 table tbody tr {
   border-bottom: 1px dashed #444;
+}
+
+code.inline {
+  background-color: #40404024;
+  padding: 0 3px;
 }

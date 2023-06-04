@@ -2,17 +2,18 @@ const patterns = [
   ["operator", /^[=]/],
   ["parenthesis", /^[()]/],
   ["bracket", /^[\[\]]/],
-  ["special", /^(?:[.,!\-]|:-|\?-)/],
+  ["special", /^(?:[.,!\-]|\?-)/],
   ["comment", /^%.*/],
+  ["implies", /^:-/],
   ["number", /^[0-9]|[1-9][0-9]+/],
-  ["constant", /^(?:false|true)/],
-  ["constant", /^[a-zA-Z][a-zA-Z_0-9]*/],
-  ["identifier", /^[A-Z][a-zA-Z_0-9]*/],
+  ["keyword", /^(?:false|true)/],
+  ["constant", /^[a-z][a-zA-Z_0-9]*/],
+  ["variable", /^[A-Z][a-zA-Z_0-9]*/],
   ["whitespace", /^\s+/],
 ];
 
 function tokenize(source) {
-  console.log(source);
+  // console.log(source);
   const lines = source.split(/\n/g);
 
   const processedLines = [];
@@ -20,7 +21,7 @@ function tokenize(source) {
     const { bg, tokens } = tokenizeLine(line);
     processedLines.push({ bg, tokens });
   }
-  console.log(processedLines);
+  // console.log(processedLines);
   return processedLines;
 }
 
@@ -34,7 +35,7 @@ function tokenizeLine(line) {
     let matched = false;
     for (const [type, pattern] of patterns) {
       const match = line.match(pattern);
-      console.log(match, line)
+      // console.log(match, line)
       if (match) {
         tokens.push({ type, value: match[0] });
         line = line.slice(match[0].length);

@@ -37,42 +37,200 @@
     <main>
       <article style="width: 800px; margin: 0 auto">
         <div>
-          <h1>Prolog from scratch</h1>
+          <h1>Prolog from scratch with Python</h1>
           <p>
-            If you've ever wondered how Prolog works under the hood, you'll find
-            out that it's actually not that complicated. (And yes, this includes
-            cuts as well)
+            We're going to implement a simple Prolog interepreter from scratch
+            using Python. Prolog might look daunting from the outside but we'll
+            see that under the hood it's actually not that complicated.
+          </p>
+          <p>
+            There is a Github repo to go with this tutorial. Each code sample in
+            this tutorial also has a commit hash in the top right corner which
+            lets you view the full code covered so far.
           </p>
         </div>
         <div>
           <h2>Prolog crash-course</h2>
           <p>
-            If you're already familiar with Prolog you can skip this section.
-            This is a 2-minute Prolog 101 which will cover just the basics. If
-            you're still interested afterwards, I suggest looking up some more
-            in-depth tutorials afterwards.
-          </p>
-          <p>
-            There is a Github repo to go with this tutorial which you can check
-            out here. Each code sample that I give here also contains a link to
-            the commit.
+            If you're already familiar with Prolog, you can safely skip this
+            section. If this is your first encounter with Prolog or logic
+            programming in general, I've written a (very) brief introduction so
+            I'd encourage you to look up more in-depth resources afterwards.
           </p>
           <p>
             So let's have a look what Prolog is all about and what makes it
-            special. Prolog is a logical and declarative programming language.
-            You are probably already familiar with declarative languages like
-            SQL, in which you typically specify what you want and you let the
-            language figure out how to give it to you. Logic programming
-            languages are closely related to mathematical logic. In the case of
-            Prolog, it is based on what is called First-Order (or Predicate)
-            logic. At its core, Prolog is just database of facts expressed in
-            First-Order logic which can be queried. That is, we can ask Prolog
-            if something is true given some facts. Let's see some simple
-            examples:
+            different from move conventional programming languages. Prolog is a
+            declarative programming language. You are probably already familiar
+            with declarative languages like SQL. In those languages you
+            typically specify what you want and you let the language figure out
+            how to get the result for you rather than providing a setup-by-step
+            instructions like in more imperative languages.
+          </p>
+          <p>
+            Being declarative doesn'make Prolog that different, what's more
+            interesting is that it is a logic programming language. Logic
+            programming languages have close ties to mathematical logic. Prolog
+            itself is based on First-Order (also called Predicate) logic. You
+            can think of Prolog as essentially a theorem prover for First-Order
+            logic. You give it a set of facts and a logical formula and ask does
+            this formula logically follow from my these facts?
+          </p>
+          <p>
+            Just to illustrate what I mean, here are two logic formulas: $$
+            \begin{align*} &p \\ &p \Rightarrow q \end{align*} $$ That is, \(p\)
+            implies \(q\) and \(p\) is true. We want to know whether we can
+            prove \(q\) from these two facts. And we can see that in fact \(q\)
+            follows from those two formulas. In this case it wasn't that hard to
+            figure out, but imagine we have dozens or hundreds of formulas.
+            Luckily there is an algorithm which can solve this kind of problem
+            called resolution which is basically modus ponens on streoids and
+            this is what Prolog uses under the hood. (modus ponens)
+          </p>
+          <p>Let's see how we can write this in Prolog:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">simple.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+p.
+q :- p.
+
+philosohper(aristotle).
+philosohper(socrates).
+
+human(X) :- philosohper(X).
+
+
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            The first line is essentially identical. Formulas in Prolog must be
+            terminated using a dot (<code class="inline">.</code>). The second
+            line represents the implication \(p \Rightarrow q\). Notice however,
+            that the order is swapped in Prolog. That is \(p \Rightarrow q\) is
+            written as <code class="inline">q :- p</code>.
+          </p>
+          <p>
+            Prolog allows only a restricted form of an implication clauses ...
+          </p>
+          <p>We can now ask Prolog if it can derive \(q\):</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">simple.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- q.
+true.
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Don't worry about the ?- part, it just means we want Prolog to prove
+            the formula that comes after it. The answer we got is
+            <code class="inline">true</code> meaning Prolog was able to prove
+            \(q\) as expected.
+          </p>
+          <p>
+            This is cool, but we can do more. Remember that Prolog understands
+            First-Order logic. This means that we can use predicates and
+            variables as well:
           </p>
           <div class="code-sample">
             <div class="header">
-              <div class="filename">database.pl</div>
+              <div class="filename">simple.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+p(dog).
+p(cat).
+q(X) :- p(X).
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Here <code class="inline">p</code> and
+            <code class="inline">q</code> are predicates which take one
+            argument. In Prolog, identifiers that start with a lowercase letter
+            like <code class="inline">dog</code> and
+            <code class="inline">cat</code> are treat as constants - there is no
+            need to use quotes. Identifiers starting with an uppercase letter
+            like <code class="inline">X</code>
+            are treated as variables.
+          </p>
+          <p>Let's see what Prolog can prove about this program:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">simple.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- p(dog).
+true.
+
+?- p(elephant).
+false.
+
+?- q(dog).
+true.
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            The first result is not at all surprising,
+            <code class="inline">p(dog)</code> is one of the formulas we already
+            had. Prolog predictably fails to prove the second formula since we
+            don't have <code class="inline">p(elephant)</code> as an atomic
+            formula and there is no way to derive it. We can prove the last
+            query by starting with <code class="inline">p(dog)</code> and
+            applying <code class="inline">q(X) :- p(X)</code> and substituting
+            <code class="inline">dog</code> for <code class="inline">X</code> to
+            get <code class="inline">q(dog)</code>.
+          </p>
+          <p>
+            So far so good. Let's see what happens when our query contains a
+            variable:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">simple.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- p(X).
+X = dog.
+X = cat.
+
+?- q(X).
+X = dog.
+X = cat.
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            When we use a variable in the query, Prolog will give us all
+            assignments for the variable which make the formula provable. For
+            example, the results of the second query are telling us that
+            <code class="inline">q(dog)</code> and
+            <code class="inline">q(cat)</code> are both provable.
+          </p>
+          <p>
+            This makes Prolog incredibly powerful because if we can convert our
+            problem to Prolog, we can not only ask if something is true, but we
+            can flip the question and have Prolog generate all facts that are
+            true instead.
+          </p>
+          <p>Let's see a less contrived example:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">parents.pl</div>
               <div class="commit-sha"><a href="#">34hj6k5</a></div>
             </div>
             <div class="code prolog">
@@ -82,86 +240,53 @@ parent(george, margaret).
 parent(elizabeth, charles).
 parent(philip, charles).
 parent(elizabeth, edward).
-parent(philip, edward).
-              </code></pre>
-            </div>
-          </div>
-          <p>
-            This is a simple Prolog program - we have 6 facts describing a
-            predicate called 'parent'. The arguments are Prolog constants (in
-            the language of logic, atoms). Anything that starts with a lowercase
-            letter is treated as a constant in Prolog.
-          </p>
-          <p>Now we can take this program and ask questions about it:</p>
-          <div class="code-sample">
-            <div class="header">
-              <div class="filename">&lt;Prolog REPL&gt;</div>
-            </div>
-            <div class="code prolog">
-              <pre><code>
-?- parent(george, elizabeth).
-true.
+parent(charles, harry).
 
-?- parent(margaret, elizabeth).
-false.
-              </code></pre>
-            </div>
-          </div>
-          <p>
-            First, we asked if 'george' is a parent of 'elizabeth' and Prolog
-            returned 'true'. Next, we asked whether 'parent(margaret,
-            elizabeth)' and Prolog returned 'false'. To answer these queries,
-            Prolog simply checks if the query exists in the program. This on its
-            own is not that useful, so let's what else we can do:
-          </p>
-          <div class="code-sample">
-            <div class="header">
-              <div class="filename">&lt;Prolog REPL&gt;</div>
-            </div>
-            <div class="code prolog">
-              <pre><code>
-?- parent(george, X).
-X = elizabeth.
-X = margaret.
-
-?- parent(X, Y).
-X = george, Y = elizabeth.
-X = george, Y = margaret.
-X = elizabeth, Y = charles.
-X = george, Y = charles.
-X = elizabeth, Y = edward.
-X = philip, Y = edward.
-              </code></pre>
-            </div>
-          </div>
-          <p>
-            So what happened here? Rather than asking Prolog if some fact is in
-            the database, we can ask for all results that match our query by
-            using variables. (Prolog considers anything that starts with an
-            upercase letter to be a variable) When Prolog sees that the query
-            has a variable, it tries to find all assignments that satisfy the
-            query.
-          </p>
-          <p>
-            For now, we've only worked with simple facts, but Prolog also
-            includes 'conditionals', in the language of logic, clauses. Let's
-            use a clause to implement an 'ancestor' predicate:
-          </p>
-          <div class="code-sample">
-            <div class="header">
-              <div class="filename">core.py</div>
-              <div class="commit-sha"><a href="#">34hj6k5</a></div>
-            </div>
-            <div class="code prolog">
-              <pre><code>
+ancestor(X, Y) :- parent(X, Y).
 ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
               </code></pre>
             </div>
           </div>
           <p>
-            A Prolog clause is basically an implication. The above reads as: IF
-            (parent(X, Z) AND ancestor(Z, Y)) THEN ancestor(X, Y). Basically,
-            you have to read it backwards. Let's have a look:
+            In this example we first define a
+            <code class="inline">parent</code> predicate.
+            <code class="inline">parent(george, elizabeth)</code> means that
+            <code class="inline">george</code> is the parent of
+            <code class="inline">elizabeth</code>. We now define a new
+            predicate, <code class="inline">ancestor(X, Y)</code> which is true
+            if <code class="inline">X</code> is an ancestor (parent,
+            grandparent, ..) of <code class="inline">Y</code>.
+          </p>
+          <p>
+            In a typical Prolog style, it is defined recursively. The base case
+            says that a parent is also an ancestor. The recursive case says that
+            an ancestor of <code class="inline">Y</code> must be a parent of
+            someone else (<code class="inline">Z</code>) who is an ancestor of
+            <code class="inline">Y</code>. This step essentially allows us to
+            decompose the ancestor into a series of parents.
+          </p>
+          <p>
+            Here's an analogous function written in Python for a comparison:
+          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">parents.pl</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def ancestor(x, y):
+    if parent(x, y):
+        return True
+    for z in people:
+      if parent(x, z) and ancestor(z, y):
+          return True
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Once you've digested the code, we can take the Prolog program and
+            make some queries:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -172,12 +297,22 @@ ancestor(X, Y) :- parent(X, Z), ancestor(Z, Y).
 ?- ancestor(george, elizabeth).
 true.
 
-?- ancestor(george, charles).
+?- ancestor(george, harry).
 true.
               </code></pre>
             </div>
           </div>
-          <p>We can of course ask for all ancestors of a person, e.g.:</p>
+          <p>
+            The first query can be proven from the application of the first rule
+            since <code class="inline">parent(george, elizabeth)</code> is
+            already given. To prove the second query, Prolog applies the second
+            rule twice to get from <code class="inline">george</code> to
+            <code class="inline">elizabeth</code> to
+            <code class="inline">charles</code> and finally to
+            <code class="inline">harry</code>.
+          </p>
+          <p>We can show the computation using this animation:</p>
+          <p>Continuing, we can ask for all ancestors of a specific person:</p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">&lt;Prolog REPL&gt;</div>
@@ -193,21 +328,34 @@ X = edward.
             </div>
           </div>
           <p>
-            And here lies the power of Prolog. Just by merely defining the
-            'ancestor' predicate, we can not only ask if someone is someone
-            else's ancestor but we can also ask Prolog to generate all ancestors
-            according to the rules that we gave it. The only difference is that
-            we use variables instead of constants, which is pretty neat. Imagine
-            trying to implement this in another language.
+            Pretty neat. Prolog can again figure out on its own what
+            <code class="inline">X</code> to make the query true. Pretty neat.
+            Imagine trying to implement this in another language.
           </p>
+          <p>And to finish off, let's see all ancestor pairs:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;Prolog REPL&gt;</div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- ancestor(X, Y).
+X = george, Y = elizabeth
+.
+.
+.
+              </code></pre>
+            </div>
+          </div>
           <p>
-            Prolog being closely related to First-Order logic has support for
-            functions as well. Functions in Prolog, as in First-Order logic, are
+            There's one last thing I'd like to show in this Prolog 101 and that
+            is functions. Functions in Prolog, as in First-Order logic, are
             purely syntactic in nature (also called uninterpreted functions).
             They are used to build structure and to form compound terms from
             simple terms. In fact, Prolog does not have any built-in data
-            structures to speak of. But it doesn't need them. We can implement
-            everything just with functions. Here's an example of a linked list:
+            structures to speak of. Although it doesn't really need them since
+            we can implement everything we might want with just functions. The
+            classical example is a linked list:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -220,13 +368,25 @@ X = c(1, c(2, c(3, c()))).
             </div>
           </div>
           <p>
-            In a more standard notation, this list might be written as '[1,2,3]'
-            (Swipl Prolog does actually have lists but they are syntactic
-            sugar). What we've done is we've taken a function 'c' which stands
-            for concatenate and defined a list as follows: 'c()' is an empty
-            list. 'c(X, Y)' is a list where X is the first element and Y is the
-            rest of the list. We can even write a Prolog predicate to tell us if
-            something is a list according to our definition:
+            We've taken a function <code class="inline">c</code> (like
+            <code class="inline">cons</code> in Lisp) and we define a list as
+            follows. <code class="inline">c()</code> is an empty list.
+            <code class="inline">c(H, T)</code>
+            is a list where <code class="inline">H</code> is the first element
+            (called head) and <code class="inline">T</code> is the rest of the
+            list (called tail).
+          </p>
+          <p>
+            If we wanted to translate
+            <code class="inline">c(1, c(2, c(3, c())))</code> it would simply be
+            <code class="inline">[1,2,3]</code>. (That is also the case in some
+            Prolog implementations like SWI Prolog where one can write list as
+            <code class="inline">[1,2,3]</code> but it is merely a syntactic
+            sugar)
+          </p>
+          <p>
+            Now that we have a definition of a list, we can even write a Prolog
+            to recognize lists.
           </p>
           <div class="code-sample">
             <div class="header">
@@ -240,13 +400,54 @@ list(c(Head, Tail)) :- list(Tail).
             </div>
           </div>
           <p>
-            This definition basically says that an empty list (denoted as the
-            argument-less function `list()`) is a list. Then, we recursively
-            define a list as any list function with a head and a tail which is
-            again a list. This kind of a linked list is similar to how lists are
-            used in Lisp.
+            Prolog essentially allows us to desctructure the argument passed to
+            list and do different things. This is very similar to Python's own
+            pattern matching, just more powerful.
           </p>
-          <p>We can also define operations on lists such as the length:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- list(c(1, c())).
+true.
+
+?- list(c(1, c(, c()))).
+true.
+
+?- list(d(1, d())).
+false.
+              </code></pre>
+            </div>
+          </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+class c:
+    def __init__(self, head: Any = None, tail: Self|None = None):
+        self.head = head
+        self.tail = tail
+
+def is_list(x):
+    match x:
+        case c(head=None, tail=None):
+            return True
+        case c(head=_, tail=tail):
+            return is_list(x)
+
+is_list(c(1, c()))
+is_list(c(1, c(2, c())))
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Using our new lists, we can easily define predicates that operate on
+            them:
+          </p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">&lt;stdin&gt;</div>
@@ -258,19 +459,48 @@ last(c(Head, Tail), Last) :- last(Tail, Last).
               </code></pre>
             </div>
           </div>
-          <p>
-            (We assume that we have previously defined the 'increment' predicate
-            which just increments by one)
-          </p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code prolog">
+              <pre><code>
+?- last(c(1, c()), L).
+L = 1.
+
+?- X = c(1, c(2, c())), last(X, L).
+L = 2.
+
+?- last(c()).
+false.
+              </code></pre>
+            </div>
+          </div>
+          <p>Python equivalent:</p>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">&lt;stdin&gt;</div>
+            </div>
+            <div class="code">
+              <pre><code>
+def last(x: list):
+    match x:
+        case (head,):
+            return head
+        case (head, *tail):
+            return last(tail)
+              </code></pre>
+            </div>
+          </div>
           <p>
             This concludes our Prolog crash-course. To summarize, in Prolog you
-            define predicates which can either be simple facts like
-            'parent(george, elizabeth)' or clauses which can be thought of as
-            logical implications. When given a query, Prolog will try to find a
-            variable assignment that satisfies all clauses.
+            can define a set of clauses on which you can then make inference
+            such as asking if a formula is a logical consequence of the given
+            clauses. If you use variables in the query, Prolog will find the
+            variable assignments which make the query provable (or fail).
           </p>
         </div>
-        <div>
+        <!-- <div>
           <h2>Connection to First-Order logic</h2>
           <p>
             Prolog is essentially just a restricted form of First-Order
@@ -281,21 +511,21 @@ last(c(Head, Tail), Last) :- last(Tail, Last).
             predicate. This makes it possible to systemcatically search
             resulting tree and the complexity becomes linear.
           </p>
-        </div>
+        </div> -->
         <div>
           <h2>Getting our hands dirty</h2>
           <p>
             This is the part where we actually start implementing our own
-            verions of Prolog. If you skipped the tutorial, you can start
-            reading from here.
+            verions of Prolog. If you skipped the Prolog crash-course, you can
+            start reading from here.
           </p>
           <p>
             We'll be using Python version >=3.10 since it includes structural
-            pattern matching which will come in handy as we shall see later.
+            pattern matching which will make the implementation much easier.
           </p>
           <p>
             Let's start by defining the basic elements of First-Order logic
-            which are used by Prolog:
+            which we are going to need to represent Prolog clauses:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -304,11 +534,11 @@ last(c(Head, Tail), Last) :- last(Tail, Last).
             </div>
             <div class="code">
               <pre><code>
-class Term(Symbol):
-    """Base class for atoms & variables"""
+class Term:
+    """Base class for constants & functions"""
 
 
-class Atom(Term):
+class Constant(Term):
     """A constant term, e.g., `c`"""
 
     def __init__(self, name):
@@ -333,8 +563,8 @@ class Function(Term):
             </div>
           </div>
           <p>
-            We added the dunder 'repr' to have a nice print output. Let's try it
-            out:
+            We added the dunder <code class="inline">repr()</code> to have a
+            nice print output. Let's try it out:
           </p>
           <div class="code-sample">
             <div class="header">
@@ -342,16 +572,16 @@ class Function(Term):
             </div>
             <div class="code">
               <pre><code>
->>> Atom('c')
+>>> Constant('c')
 'c'
->>> Function('f', args=[Atom('a')])
+>>> Function('f', args=[Constant('a')])
 'f(a)'
->>> Function('f', args=[Atom('a'), Function('g', args=[Atom('b')])])
+>>> Function('f', args=[Constant('a'), Function('g', args=[Constant('b')])])
 'f(a, g(b))'
               </code></pre>
             </div>
           </div>
-          <p>Let's also add variables..</p>
+          <p>Let's also add variables:</p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">core.py</div>
@@ -359,6 +589,10 @@ class Function(Term):
             </div>
             <div class="code">
               <pre><code>
+class Term:
+-    """Base class for constants & functions"""
++    """Base class for constants, functions & variables"""
+
 ...
 
 +class Variable(Term):
@@ -397,10 +631,12 @@ class Function(Term):
 
 -class Term:
 +class Term(Symbol):
-    """Base class for atoms, functions & variables"""
+    """Base class for constants, functions & variables"""
+
 ...
+
 +class Predicate(Symbol):
-+    """A predicate, e.g., `P(X, f(Y))`. Predicates can be assigned truth values."""
++    """A predicate, e.g., `P(X, f(Y))`."""
 +
 +    def __init__(self, name, args: list[Term]):
 +        self.name = name
@@ -419,7 +655,7 @@ class Function(Term):
             </div>
             <div class="code">
               <pre><code>
->>> Predicate('P', args=[Variable('X'), Atom('x')])
+>>> Predicate('P', args=[Variable('X'), Constant('c')])
 'P(X, c)'
 >>> Predicate('P', args=[Function('f', args=[Variable('X')])])
 'P(f(X))'
@@ -470,7 +706,7 @@ def substitute(node: Symbol, substitution: dict[Variable, Term]) -> Symbol:
     The value can be another variable.
     """
     match node:
-        case Atom() as atom:
+        case Constant() as atom:
             return atom
         case Predicate(name=name, args=args):
             args = [substitute(arg, substitution) for arg in args]
@@ -528,12 +764,12 @@ class Variable(Term):
             </div>
             <div class="code">
               <pre><code>
->>> X = Variable('X'); c = Atom('c'); S = {X: c}
+>>> X = Variable('X'); c = Constant('c'); S = {X: c}
 >>> P = Predicate("P", args=[X])
 'P(X)'
 >>> substitute(P, S)
 'P(c)'
->>> X = Variable('X'); Y = Variable('Y'); Z = Variable('Z'); c = Atom('c')
+>>> X = Variable('X'); Y = Variable('Y'); Z = Variable('Z'); c = Constant('c')
 >>> f = Function('f', args=[Z]);
 'f(Z)'
 >>> P = Predicate('P', args=[X, Y])
@@ -669,7 +905,7 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
 -        case _:
 -          return None
-+        case (Atom(), Atom()) if x.name == y.name:
++        case (Constant(), Constant()) if x.name == y.name:
 +            return {}
               </code></pre>
             </div>
@@ -685,7 +921,7 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
             </div>
             <div class="code">
               <pre><code>
->>> a1 = Atom('a'); a2 = Atom('a'); b = Atom('b')
+>>> a1 = Constant('a'); a2 = Constant('a'); b = Constant('b')
 >>> unify(a1, b2)
 {}
 >>> unify(a1, b)
@@ -703,9 +939,9 @@ None
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-+        case Variable(), (Atom() | Function()) as term:
++        case Variable(), (Constant() | Function()) as term:
 +            return {x: term}
               </code></pre>
             </div>
@@ -724,11 +960,11 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
             return {x: term}
-+        case (Atom() | Function()) as term, Variable():
++        case (Constant() | Function()) as term, Variable():
 +            return {y: term}
               </code></pre>
             </div>
@@ -740,7 +976,7 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
             </div>
             <div class="code">
               <pre><code>
->>> X = Variable('X'); c = Atom('c'); f = Function('f', args=[c])
+>>> X = Variable('X'); c = Constant('c'); f = Function('f', args=[c])
 >>> unify(X, c)
 {X: 'c'}
 >>> unify(f, X)
@@ -786,11 +1022,11 @@ True
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
             return {x: term}
-        case (Atom() | Function()) as term, Variable():
+        case (Constant() | Function()) as term, Variable():
             return {y: term}
 +        case (Variable(), Variable()):
 +            if x == y:
@@ -833,11 +1069,11 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
             return {x: term}
-        case (Atom() | Function()) as term, Variable():
+        case (Constant() | Function()) as term, Variable():
             return {y: term}
 +        case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
 +            return unify(x.args, y.args)
@@ -859,11 +1095,11 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
             return {x: term}
-        case (Atom() | Function()) as term, Variable():
+        case (Constant() | Function()) as term, Variable():
             return {y: term}
         case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
             return unify(x.args, y.args)
@@ -901,11 +1137,11 @@ def unify(x: Term | list[Term], y: Term | list[Term]):
               <pre><code>
 >>> f1 = Function('f', args=[Variable('X'), Y = Variable('Y')])
 'f(X, Y)'
->>> f2 = Function('f', args=[Atom('a'), Atom('b')])
+>>> f2 = Function('f', args=[Constant('a'), Constant('b')])
 'f(a, b)'
 >>> unify(f1, f2)
 {X: 'a', Y: 'b'}
->>> Z = Variable('Z'); a = Atom('a'); b = Atom('b')
+>>> Z = Variable('Z'); a = Constant('a'); b = Constant('b')
 >>> unify((Z, Z), (a, b))
 None
               </code></pre>
@@ -926,13 +1162,13 @@ None
               <pre><code>
 def unify(x: Term | list[Term], y: Term | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
 -            return {x: term}
 +            if not contains(term, x):
 +                return {x: term}
-        case (Atom() | Function()) as term, Variable():
+        case (Constant() | Function()) as term, Variable():
 -            return {y: term}
 +            if not contains(term, y):
 +                return {y: term}
@@ -991,12 +1227,12 @@ def contains(term: Term, x: Variable):
 -    def unify(x: Term | list[Term], y: Term | list[Term]):
 +    def unify(x: Symbol | list[Term], y: Symbol | list[Term]):
     match (x, y):
-        case Atom(), Atom() if x.name == y.name:
+        case Constant(), Constant() if x.name == y.name:
             return {}
-        case Variable(), (Atom() | Function()) as term:
+        case Variable(), (Constant() | Function()) as term:
             if not contains(term, x):
                 return {x: term}
-        case (Atom() | Function()) as term, Variable():
+        case (Constant() | Function()) as term, Variable():
             if not contains(term, y):
                 return {y: term}
         case (Function(), Function()) if x.name == y.name and x.arity == y.arity:
@@ -1025,8 +1261,8 @@ def contains(term: Term, x: Variable):
           <h2>Putting it all together</h2>
           <p>
             Before we get to the main algorithm though, we'll just need one
-            small helper class to represent a Prolog clause. A list of clauses
-            will constitute a Prolog program.
+            small helper class to represent a Prolog clause. A Prolog program
+            will be represented simply as a list of clauses.
           </p>
           <div class="code-sample">
             <div class="header">
@@ -1076,6 +1312,10 @@ class Clause:
             </div>
           </div>
           <p>
+            Let's first see how Prolog actually proves a query: (SLD tree
+            example)
+          </p>
+          <p>
             We are now ready to write the main algorithm. Before we get to
             writing the code let's first sketch the main ideas. We've got our
             Prolog program which just a list of rules and our query which for
@@ -1087,6 +1327,16 @@ class Clause:
             while maintaining all the previous subsitutions. We finish when we
             have no predicates left and we are left with the final substitution.
           </p>
+          <p>
+            1) if the query is empty we have proven, return substitution
+            2) we pop the first predicate from the query.
+            3) for each clause in program do
+              Relabel clause variables to avoid clashes
+              4) if clause head unifies with with predicate and subsitituion S
+                5) push clause body into the query
+                6) substitute the whole query with S
+                7) prove(query)
+          </p>
           <div class="code-sample">
             <div class="header">
               <div class="filename">core.py</div>
@@ -1094,22 +1344,78 @@ class Clause:
             </div>
             <div class="code">
               <pre><code>
-
-def query(rules: list[Rule], stack: list[Predicate], substitution):
-  if not stack:
-      yield substitution
-      return
-
-  predicate, stack = stack[0], stack[1:]
-  for rule in rules:
-      rule = relabel(rule)
-      if (new_substitution := unify(predicate, rule.head)) is not None:
-          new_stack = rule.body + stack
-          new_stack = [substitute(p, new_substitution) for p in stack]
-          yield from query(rules, new_stack, substitution | new_substitution)
+def prove(program: list[Clause], query: list[Predicate], substitution):
+    if not query:
+        yield substitution
+        return
               </code></pre>
             </div>
           </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def prove(program: list[Clause], query: list[Predicate], substitution):
+    if not query:
+        yield substitution
+        return
++
++    predicate, query = query[0], query[1:]
++    for clause in program:
++        # ...
+              </code></pre>
+            </div>
+          </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def prove(program: list[Clause], query: list[Predicate], substitution):
+    if not query:
+        yield substitution
+        return
+    
+    predicate, query = query[0], query[1:]
+    for clause in program:
++        if (clause_substitution := unify(predicate, clause.head)) is not None:
++            new_query = clause.body + query
++            new_query = [substitute(p, new_substitution) for p in query]
++            yield from prove(program, new_stack, substitution | clause_substitution)
+              </code></pre>
+            </div>
+          </div>
+          <div class="code-sample">
+            <div class="header">
+              <div class="filename">core.py</div>
+              <div class="commit-sha"><a href="#">34hj6k5</a></div>
+            </div>
+            <div class="code">
+              <pre><code>
+def prove(program: list[Clause], query: list[Predicate], substitution):
+    if not query:
+        yield substitution
+        return
+    
+    predicate, query = query[0], query[1:]
+    for clause in program:
+        clause = relabel(clause)
+        if (new_substitution := unify(predicate, clause.head)) is not None:
+            new_query = clause.body + query
+            new_query = [substitute(p, new_substitution) for p in query]
+            yield from prove(program, new_stack, substitution | new_substitution)
+              </code></pre>
+            </div>
+          </div>
+          <p>
+            Let's see what happens on our toy program.
+            ancestor(george, elizabeth)
+          </p>
           <p>
             Let's go over what happens here. We define a query function which is
             a generator. It will return all subsitutions which satisfy the query
