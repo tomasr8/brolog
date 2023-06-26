@@ -1320,6 +1320,52 @@ class Clause:
             Let's first see how Prolog actually proves a query: (SLD tree
             example)
           </p>
+          <div id="animate-simple">
+            <img src="assets/short/prolog-01.svg" />
+            <img src="assets/short/prolog-02.svg" />
+            <img src="assets/short/prolog-03.svg" />
+            <img src="assets/short/prolog-04.svg" />
+            <img src="assets/short/prolog-05.svg" />
+            <img src="assets/short/prolog-06.svg" />
+            <img src="assets/short/prolog-07.svg" />
+            <img src="assets/short/prolog-08.svg" />
+            <img src="assets/short/prolog-09.svg" />
+            <img src="assets/short/prolog-10.svg" />
+            <img src="assets/short/prolog-11.svg" />
+            <img src="assets/short/prolog-12.svg" />
+            <input type="range" min="1" max="12" value="12" />
+          </div>
+          <div id="animate-complex">
+            <img src="assets/long/prolog2-01.svg" />
+            <img src="assets/long/prolog2-02.svg" />
+            <img src="assets/long/prolog2-03.svg" />
+            <img src="assets/long/prolog2-04.svg" />
+            <img src="assets/long/prolog2-05.svg" />
+            <img src="assets/long/prolog2-06.svg" />
+            <img src="assets/long/prolog2-07.svg" />
+            <img src="assets/long/prolog2-08.svg" />
+            <img src="assets/long/prolog2-09.svg" />
+            <img src="assets/long/prolog2-10.svg" />
+            <img src="assets/long/prolog2-11.svg" />
+            <img src="assets/long/prolog2-12.svg" />
+            <img src="assets/long/prolog2-13.svg" />
+            <img src="assets/long/prolog2-14.svg" />
+            <img src="assets/long/prolog2-15.svg" />
+            <img src="assets/long/prolog2-16.svg" />
+            <img src="assets/long/prolog2-17.svg" />
+            <img src="assets/long/prolog2-18.svg" />
+            <img src="assets/long/prolog2-19.svg" />
+            <img src="assets/long/prolog2-20.svg" />
+            <img src="assets/long/prolog2-21.svg" />
+            <img src="assets/long/prolog2-22.svg" />
+            <img src="assets/long/prolog2-23.svg" />
+            <img src="assets/long/prolog2-24.svg" />
+            <img src="assets/long/prolog2-25.svg" />
+            <img src="assets/long/prolog2-26.svg" />
+            <img src="assets/long/prolog2-27.svg" />
+            <img src="assets/long/prolog2-28.svg" />
+            <input type="range" min="1" max="28" value="28" />
+          </div>
           <p>
             We are now ready to write the main algorithm. Before we get to
             writing the code let's first sketch the main ideas. We've got our
@@ -1535,6 +1581,7 @@ def query(rules: list[Rule], stack: list[Predicate], cuts, substitution):
     </main>
     <script src="highlight.js" type="module"></script>
     <script src="highlight-prolog.js" type="module"></script>
+    <script src="animations.js" type="module"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         [...document.querySelectorAll(".latex")].forEach((node) => {
