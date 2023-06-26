@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <title></title>
+
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/katex@0.16.7/dist/katex.min.css"
@@ -15,6 +16,8 @@
       href="https://fonts.googleapis.com/css2?family=Noto+Serif&display=swap"
       rel="stylesheet"
     />
+
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.3/full/pyodide.js"></script>
 
     <!-- The loading of KaTeX is deferred to speed up page rendering -->
     <script
@@ -75,16 +78,21 @@
             logic. You give it a set of facts and a logical formula and ask does
             this formula logically follow from my these facts?
           </p>
+          <p>Just to illustrate what I mean, here are two logic formulas:</p>
           <p>
-            Just to illustrate what I mean, here are two logic formulas: $$
-            \begin{align*} &p \\ &p \Rightarrow q \end{align*} $$ That is, \(p\)
-            implies \(q\) and \(p\) is true. We want to know whether we can
-            prove \(q\) from these two facts. And we can see that in fact \(q\)
-            follows from those two formulas. In this case it wasn't that hard to
-            figure out, but imagine we have dozens or hundreds of formulas.
-            Luckily there is an algorithm which can solve this kind of problem
-            called resolution which is basically modus ponens on streoids and
-            this is what Prolog uses under the hood. (modus ponens)
+            $$ \begin{align*} &philosopher(scorates) \\ &philosopher(plato) \\
+            &philosopher(aristotle) \\ &philosopher(Y) \rightarrow human(Y) \\
+            &human(X) \rightarrow mortal(X) \end{align*} $$
+          </p>
+          <p>
+            That is, \(p\) implies \(q\) and \(p\) is true. We want to know
+            whether we can prove \(q\) from these two facts. And we can see that
+            in fact \(q\) follows from those two formulas. In this case it
+            wasn't that hard to figure out, but imagine we have dozens or
+            hundreds of formulas. Luckily there is an algorithm which can solve
+            this kind of problem called resolution which is basically modus
+            ponens on streoids and this is what Prolog uses under the hood.
+            (modus ponens)
           </p>
           <p>Let's see how we can write this in Prolog:</p>
           <div class="code-sample">
@@ -94,15 +102,12 @@
             </div>
             <div class="code prolog">
               <pre><code>
-p.
-q :- p.
+philosopher(scorates).
+philosopher(plato).
+philosopher(aristotle).
 
-philosohper(aristotle).
-philosohper(socrates).
-
-human(X) :- philosohper(X).
-
-
+human(X) :- philosopher(X).
+mortal(Y) :- human(Y).
               </code></pre>
             </div>
           </div>
@@ -1328,14 +1333,12 @@ class Clause:
             have no predicates left and we are left with the final substitution.
           </p>
           <p>
-            1) if the query is empty we have proven, return substitution
-            2) we pop the first predicate from the query.
-            3) for each clause in program do
-              Relabel clause variables to avoid clashes
-              4) if clause head unifies with with predicate and subsitituion S
-                5) push clause body into the query
-                6) substitute the whole query with S
-                7) prove(query)
+            1) if the query is empty we have proven, return substitution 2) we
+            pop the first predicate from the query. 3) for each clause in
+            program do Relabel clause variables to avoid clashes 4) if clause
+            head unifies with with predicate and subsitituion S 5) push clause
+            body into the query 6) substitute the whole query with S 7)
+            prove(query)
           </p>
           <div class="code-sample">
             <div class="header">
@@ -1413,8 +1416,8 @@ def prove(program: list[Clause], query: list[Predicate], substitution):
             </div>
           </div>
           <p>
-            Let's see what happens on our toy program.
-            ancestor(george, elizabeth)
+            Let's see what happens on our toy program. ancestor(george,
+            elizabeth)
           </p>
           <p>
             Let's go over what happens here. We define a query function which is
@@ -1521,14 +1524,12 @@ def query(rules: list[Rule], stack: list[Predicate], cuts, substitution):
             </code></pre>
           </div>
         </div>
-
-        <div style="font-size: 20px; color: rgb(71, 71, 91)">
-          We will build up our prolog interepreter from basic comopnents and
-          operations. The buildings blocks of first order logic are terms and
-          predicates. Terms can be atoms, functions and variables. Predicates
-          are the equivalent to propositions from prospotional logic; they can
-          be either true or false. Prolog is essentially a subset of first order
-          resolution - one with a well-defined algorithm
+        <div>
+          <h2>REPL</h2>
+          <p>
+            <textarea id="python-input"></textarea>
+            <button id="run-python" type="button">Run</button>
+          </p>
         </div>
       </article>
     </main>
@@ -1542,6 +1543,25 @@ def query(rules: list[Rule], stack: list[Predicate], cuts, substitution):
           });
         });
       });
+    </script>
+    <script>
+      async function main() {
+        console.log("HERE")
+        let pyodide = await loadPyodide();
+
+        document.getElementById("run-python").addEventListener("click", () => {
+          const text = document.getElementById("python-input").value
+          console.log(pyodide.runPython(text))
+        })
+        // Pyodide is now ready to use...
+        console.log(
+          pyodide.runPython(`
+          import sys
+          sys.version
+        `)
+        );
+      }
+      main();
     </script>
   </body>
 </html>
