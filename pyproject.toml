@@ -1,0 +1,81 @@
+[project]
+name = "brolog"
+dynamic = ["version"]
+description = "Prolog interpreter written in Python"
+readme = "README.md"
+authors = [{ name = "Tomas R." }]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Education",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+keywords = [
+    "QR",
+    "QR code",
+    "Image processing",
+    "Augmented reality",
+    "Computer vision",
+    "opencv",
+]
+license = { file = "LICENSE" }
+dependencies = ["click"]
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-snapshot",
+    "pre-commit",
+    "ruff"
+]
+
+[project.scripts]
+brolog = "brolog.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/tomasr8/SR-Code"
+Github = "https://github.com/tomasr8/SR-Code"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "D",
+    "ANN002",
+    "ANN003",
+    "ANN101",
+    "RET503",
+    "COM812",
+    "ISC001",
+    "N802",
+    "N803",
+    "N806",
+    "N818",
+    "S101",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN001", "ANN201", "PLR2004"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+
+[tool.setuptools]
+packages = ["brolog"]
+
+[tool.setuptools.dynamic]
+version = { attr = "brolog.__version__" }
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
