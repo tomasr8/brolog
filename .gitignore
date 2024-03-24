@@ -2,6 +2,7 @@
 __pycache__
 venv
 *.egg-info
+dist
 
 .ruff_cache
 .pytest_cache

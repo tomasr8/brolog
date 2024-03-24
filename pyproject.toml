@@ -8,14 +8,16 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Education",
-    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Interpreters"
 ]
 keywords = [
     "QR",
@@ -41,8 +43,8 @@ dev = [
 brolog = "brolog.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/tomasr8/SR-Code"
-Github = "https://github.com/tomasr8/SR-Code"
+Homepage = "https://github.com/tomasr8/brolog"
+Github = "https://github.com/tomasr8/brolog"
 
 [tool.ruff.lint]
 select = ["ALL"]
